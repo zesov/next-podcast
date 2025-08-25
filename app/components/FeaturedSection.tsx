@@ -1,7 +1,5 @@
 'use client'; 
-import {Espisode,FeaturedItem} from '../types';
-// import {client } from '../api/db';
-import { useState } from 'react';
+import {FeaturedItem} from '../types';
 import { useEpisode } from '../contexts/EpisodeContext';
 
 export default function FeaturedSection({data}: { data: FeaturedItem[] }) {

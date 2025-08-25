@@ -1,13 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Espisode } from '../types';
+import { Episode } from '../types';
 
 interface EpisodeContextType {
-  episodes: Espisode[];
-  setEpisodes: (episodes: Espisode[]) => void;
-  currentEpisode: Espisode | null;
-  setCurrentEpisode: (episode: Espisode | null) => void;
+  episodes: Episode[];
+  setEpisodes: (episodes: Episode[]) => void;
+  currentEpisode: Episode | null;
+  setCurrentEpisode: (episode: Episode | null) => void;
   toPlay: boolean;
   setToPlay: (toPlay: boolean) => void;
 }
@@ -15,8 +15,8 @@ interface EpisodeContextType {
 const EpisodeContext = createContext<EpisodeContextType | undefined>(undefined);
 
 export function EpisodeProvider({ children }: { children: ReactNode }) {
-  const [episodes, setEpisodes] = useState<Espisode[]>([]);
-  const [currentEpisode, setCurrentEpisode] = useState<Espisode | null>(null);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [currentEpisode, setCurrentEpisode] = useState<Episode | null>(null);
   const [toPlay, setToPlay] = useState<boolean>(false);
 
   return (

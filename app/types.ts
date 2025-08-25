@@ -15,7 +15,8 @@ export interface TopPodcast {
   newestItemPublishTime: number;
 }
 
-export interface Espisode {
+export interface Episode {
+  id: number;
   title: string;
   description: string;
   duration?: string;

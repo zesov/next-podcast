@@ -1,19 +1,20 @@
 "use client"; // 添加这行指令
 import React, { useState, useRef, useEffect } from 'react';
-import {Espisode} from '../types';
+import {Episode} from '../types';
 import { useEpisode } from '../contexts/EpisodeContext';
 
-const defaultEpisode: Espisode = {
+const defaultEpisode: Episode = {
+  id: 1,
   title: '未选择节目',
   description: '',
   enclosureUrl: 'https://podcast.rthk.hk/podcast/media/enca_hktoday/78_2508250850_71679.mp3',
   enclosureType: 'audio/mpeg',
   feedTitle: '',
-  image: '',
+  image: 'https://podcast.rthk.hk/podcast/upload_photo/item_photo/1400x1400_78.jpg',
   datePublishedPretty: '',
   datePublished: 1234567890,
   enclosureLength: 10,
-  feedImage: '',
+  feedImage: 'https://podcast.rthk.hk/podcast/upload_photo/item_photo/1400x1400_78.jpg',
 };
 
 export default function Player() {
@@ -26,7 +27,7 @@ export default function Player() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const currentEpisode = contextEpisode || defaultEpisode;
-  console.log('currentEpisode', currentEpisode);
+  if(!currentEpisode) return null;
   
 
   // 初始化音频元素
@@ -135,12 +136,19 @@ export default function Player() {
   const volumePercent = isMuted ? 0 : volume * 100;
 
   // 自动播放
-  // useEffect(() => {
-  //   if (toPlay && !isPlaying) {
-  //     togglePlayPause();
-  //     setToPlay(false);
-  //   }
-  // }, [toPlay, isPlaying]); 
+  useEffect(() => {
+    if (toPlay) {
+      const audio = audioRef.current;
+      if (!audio) return;  
+      setCurrentTime(0);
+      setDuration(audio.duration);
+        audio.play().catch(error => {
+          console.error("播放失败:", error);
+        });
+      setIsPlaying(true);
+      setToPlay(false);
+    }
+  }, [toPlay, isPlaying]); 
 
   return (
 <>

@@ -1,4 +1,7 @@
 import {TopPodcast} from "../types";
+import { useEpisode } from '../contexts/EpisodeContext';
+import React, { useState, useRef, useEffect } from 'react';
+
 export default function TopPodcasts({data}:{data:TopPodcast[]}) {
 //   const topPodcasts = [
 //     { name: "岩中花述 GIADA | JustPod", update: "8月8日更新" },
@@ -8,6 +11,14 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
 //     { name: "西西弗高速 西西弗高速", update: "每周更新" }
 //   ];
   const topPodcasts = data;
+  const { setCurrentEpisode, setToPlay } = useEpisode();
+  const handleClick = async (item: any) => {
+    // console.log(item);
+    const res = await fetch(`/api/episodesByFeedId?id=${item.id}`)
+    const episodes = await res.json();    
+    setCurrentEpisode(episodes[0]);
+    setToPlay(true);
+  };  
   return (
     <section className="mb-8">
       <h2 className="text-xl font-bold mb-4">热门节目排行</h2>
@@ -21,7 +32,9 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
                   <h3 className="font-medium">{podcast.title}</h3>
                   <p className="text-sm text-gray-500">最新更新: {(new Date(podcast.newestItemPublishTime*1000)).toDateString()}</p>
                 </div>
-                <button className="text-indigo-600 hover:text-indigo-800">
+                <button className="text-indigo-600 hover:text-indigo-800"
+                  onClick={() => handleClick(podcast)}
+                >
                   <i className="fas fa-play"></i>
                 </button>
               </div>
