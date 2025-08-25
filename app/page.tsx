@@ -2,6 +2,16 @@ import Image from "next/image";
 import PodcastIndexClient from "podcastdx-client";
 import {feeds} from "./demo";
 import { client } from "./api/db";
+import Head from 'next/head'
+import Navbar from './components/Navbar'
+import FeaturedSection from './components/FeaturedSection'
+import CategorySection from './components/CategorySection'
+import TopPodcasts from './components/TopPodcasts'
+import TopEpisodes from './components/TopEpisodes'
+import Player from './components/Player'
+import Recommended from './components/Recommended'
+import Categories from './components/Categories'
+import Footer from './components/Footer'
 
 export function createClient(key: string, secret: string) {
   // if (!key) {
@@ -13,24 +23,40 @@ export function createClient(key: string, secret: string) {
 
 export default async function Home() {
   console.log(process.env.PODCAST_INDEX_KEY);
-  // const query = "rthk";
-  // const {feeds} = await client.search(query,{max:20});
+  const query = "rthk";
+  const {feeds} = await client.search(query,{max:4});
   // console.log(client,feeds);
   return (
     <>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-        {feeds.map((p) => (
-        <a key={p.id} href={"/podcast/"+p.id} className="ml-2 mr-2 flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 overflow-hidden">
-            <div className="flex w-full h-48">
-            <img className="object-cover h-full" src={p.image || "/radio_list/img/music_note_black_48dp.svg"} alt=""/>
-            <div className="flex flex-col justify-between p-4 leading-normal w-2/3">
-                <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-2">{p.title}</h5>
-                <p className="mb-3 text-sm font-normal text-gray-700 dark:text-gray-400 line-clamp-4">{p.description}</p>
-            </div>
-            </div>
-        </a>
-        ))}
-    </div> 
+    <div className="bg-gray-100 text-gray-900 font-sans">
+      <Head>
+        <title>Apple 播客(CN) - 网页播放器</title>
+        <meta name="description" content="Apple Podcasts Web Player" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+      </Head>
+
+      <Navbar />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-2/3">
+            <FeaturedSection data={feeds}/>
+            <CategorySection />
+            <TopPodcasts />
+            <TopEpisodes />
+          </div>
+
+          <div className="lg:w-1/3">
+            <Player />
+            <Recommended />
+            <Categories />
+          </div>
+        </div>
+      </div>
+
+      <Footer />
+    </div>
     </>
   );
 }
