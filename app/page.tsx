@@ -1,20 +1,21 @@
 import Image from "next/image";
+import PodcastIndexClient from "podcastdx-client";
+import {feeds} from "./demo";
+import { client } from "./api/db";
 
-export default function Home() {
-  const feeds = [
-    {
-      id: "1",
-      title: "Podcast 1",
-      description: "This is the description for podcast 1",
-      image: "https://picsum.photos/200/300",
-    },
-    {
-      id: "2",
-      title: "Podcast 2",
-      description: "This is the description for podcast 2",
-      image: "https://picsum.photos/200/300",
-    }
-  ];
+export function createClient(key: string, secret: string) {
+  // if (!key) {
+  //   console.log(`PODCAST_INDEX_KEY is not set`);
+  //   return;
+  // }
+  return new PodcastIndexClient({ key, secret, disableAnalytics: true });
+}
+
+export default async function Home() {
+  console.log(process.env.PODCAST_INDEX_KEY);
+  // const query = "rthk";
+  // const {feeds} = await client.search(query,{max:20});
+  // console.log(client,feeds);
   return (
     <>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
