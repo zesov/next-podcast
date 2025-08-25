@@ -25,7 +25,6 @@ export default async function FeaturedSection({data}: { data: FeaturedItem[] }) 
 //       description: "抽丝剥茧探寻真相与人性谜团"
 //     }
 //   ];
-    console.log(data);
   const featuredItems = data;
 
   return (

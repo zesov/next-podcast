@@ -1,6 +1,4 @@
 import Image from "next/image";
-import PodcastIndexClient from "podcastdx-client";
-import {feeds} from "./demo";
 import { client } from "./api/db";
 import Head from 'next/head'
 import Navbar from './components/Navbar'
@@ -13,19 +11,14 @@ import Recommended from './components/Recommended'
 import Categories from './components/Categories'
 import Footer from './components/Footer'
 
-export function createClient(key: string, secret: string) {
-  // if (!key) {
-  //   console.log(`PODCAST_INDEX_KEY is not set`);
-  //   return;
-  // }
-  return new PodcastIndexClient({ key, secret, disableAnalytics: true });
-}
 
 export default async function Home() {
-  console.log(process.env.PODCAST_INDEX_KEY);
   const query = "rthk";
   const {feeds} = await client.search(query,{max:4});
-  // console.log(client,feeds);
+  const topPodcasts = await client.trending({max:6});
+  const recentEpisodes = await client.recentEpisodes({max:6});
+  // console.log("recentEpisodes",recentEpisodes);
+  const episode = recentEpisodes.items[0];
   return (
     <>
     <div className="bg-gray-100 text-gray-900 font-sans">
@@ -43,12 +36,12 @@ export default async function Home() {
           <div className="lg:w-2/3">
             <FeaturedSection data={feeds}/>
             <CategorySection />
-            <TopPodcasts />
-            <TopEpisodes />
+            <TopPodcasts data={topPodcasts.feeds}/>
+            <TopEpisodes items={recentEpisodes.items}/>
           </div>
 
           <div className="lg:w-1/3">
-            <Player />
+            <Player episode={episode}/>
             <Recommended />
             <Categories />
           </div>

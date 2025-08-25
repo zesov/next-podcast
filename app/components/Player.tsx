@@ -1,4 +1,6 @@
-export default function Player() {
+export default function Player({episode}: {episode: any}) {
+    console.log("recentEpisodes",episode);
+    const enclosureUrl = ""
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-6 sticky top-20">
       <div className="flex items-center mb-4">
@@ -6,18 +8,21 @@ export default function Player() {
           <i className="fas fa-play text-indigo-500 text-xl"></i>
         </div>
         <div className="ml-4">
-          <h3 className="font-medium">什么叫爱自己?</h3>
-          <p className="text-sm text-gray-500">天真不天真 杨天真本真</p>
+          <h3 className="font-medium">{episode.title}</h3>
+          <p className="text-sm text-gray-500">{episode.feedTitle}</p>
         </div>
       </div>
       <div className="mb-4">
-        <div className="h-1 bg-gray-200 rounded-full w-full mb-1">
+        {/* <div className="h-1 bg-gray-200 rounded-full w-full mb-1">
           <div className="h-1 bg-indigo-500 rounded-full" style={{ width: '30%' }}></div>
         </div>
         <div className="flex justify-between text-xs text-gray-500">
           <span>12:45</span>
           <span>41:32</span>
-        </div>
+        </div> */}
+              <audio controls className="w-full">
+                <source src={episode.enclosureUrl} type={episode.enclosureType} />
+              </audio>        
       </div>
       <div className="flex justify-between items-center">
         <button className="text-gray-500 hover:text-gray-700">
