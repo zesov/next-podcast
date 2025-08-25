@@ -1,4 +1,5 @@
-interface FeaturedItem {
+export interface FeaturedItem {
+  id: number;
   title: string;
   description: string;
   duration?: string;

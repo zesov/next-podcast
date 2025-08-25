@@ -1,8 +1,23 @@
 "use client"; // 添加这行指令
 import React, { useState, useRef, useEffect } from 'react';
 import {Espisode} from '../types';
+import { useEpisode } from '../contexts/EpisodeContext';
 
-export default function Player({episode}: {episode: Espisode}) {
+const defaultEpisode: Espisode = {
+  title: '未选择节目',
+  description: '',
+  enclosureUrl: 'https://podcast.rthk.hk/podcast/media/enca_hktoday/78_2508250850_71679.mp3',
+  enclosureType: 'audio/mpeg',
+  feedTitle: '',
+  image: '',
+  datePublishedPretty: '',
+  datePublished: 1234567890,
+  enclosureLength: 10,
+  feedImage: '',
+};
+
+export default function Player() {
+  const { currentEpisode: contextEpisode, toPlay, setToPlay } = useEpisode();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -10,6 +25,9 @@ export default function Player({episode}: {episode: Espisode}) {
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  const currentEpisode = contextEpisode || defaultEpisode;
+  console.log('currentEpisode', currentEpisode);
+  
 
   // 初始化音频元素
   useEffect(() => {
@@ -115,6 +133,15 @@ export default function Player({episode}: {episode: Espisode}) {
   // 计算进度百分比
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
   const volumePercent = isMuted ? 0 : volume * 100;
+
+  // 自动播放
+  // useEffect(() => {
+  //   if (toPlay && !isPlaying) {
+  //     togglePlayPause();
+  //     setToPlay(false);
+  //   }
+  // }, [toPlay, isPlaying]); 
+
   return (
 <>
       <link
@@ -125,7 +152,7 @@ export default function Player({episode}: {episode: Espisode}) {
       {/* 隐藏的音频元素 */}
       <audio
         ref={audioRef}
-        src={episode.enclosureUrl}
+        src={currentEpisode.enclosureUrl}
         preload="metadata"
       />
       
@@ -133,11 +160,11 @@ export default function Player({episode}: {episode: Espisode}) {
       <div className="bg-white rounded-lg shadow p-4 mb-6 sticky top-20">
         <div className="flex items-center mb-4">
           <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center">
-            <img className=" text-indigo-500 text-xl" src={episode.image || episode.feedImage}></img>
+            <img className=" text-indigo-500 text-xl" src={currentEpisode.image || currentEpisode.feedImage}></img>
           </div>
           <div className="ml-4">
-            <h3 className="font-medium">{episode.title}</h3>
-            <p className="text-sm text-gray-500">{episode.feedTitle}</p>
+            <h3 className="font-medium">{currentEpisode.title}</h3>
+            <p className="text-sm text-gray-500">{currentEpisode.feedTitle}</p>
           </div>
         </div>
         
