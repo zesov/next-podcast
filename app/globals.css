@@ -24,3 +24,28 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 在全局样式文件中添加 */
+.slick-slide {
+  transition: transform 0.3s ease;
+  padding: 0 10px;
+}
+
+.slick-current {
+  transform: scale(1.02);
+}
+
+.slick-prev:before,
+.slick-next:before {
+  color: #000 !important; /* 箭头颜色 */
+  font-size: 24px !important;
+}
+
+.slick-dots li button:before {
+  color: #ccc !important; /* 分页点颜色 */
+  font-size: 12px !important;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #000 !important; /* 激活分页点颜色 */
+}

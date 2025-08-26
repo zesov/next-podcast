@@ -7,7 +7,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <i className="fab fa-apple text-gray-600 text-2xl mr-2"></i>
+              <i className="fa-solid fa-podcast text-gray-600 text-2xl mr-2"></i>
               <span className="font-semibold text-xl">播客</span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

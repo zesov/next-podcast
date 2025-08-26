@@ -169,7 +169,7 @@ export default function Player({title=true}: {title?: boolean}) {
         {title && (
         <div className="flex items-center mb-4">
           <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center">
-            <img className=" text-indigo-500 text-xl" src={currentEpisode.image || currentEpisode.feedImage}></img>
+            <img className=" text-indigo-500 text-xl" src={currentEpisode.image || currentEpisode.feedImage || '/music.svg'}></img>
           </div>
           <div className="ml-4">
             <h3 className="font-medium">{currentEpisode.title}</h3>

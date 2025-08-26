@@ -16,7 +16,7 @@ export default function Index({feeds,topPodcasts,recentEpisodes}: any) {
     <>
     <div className="bg-gray-100 text-gray-900 font-sans">
       <Head>
-        <title>Apple 播客(CN) - 网页播放器</title>
+        <title>JuneAC 播客(CN) - 网页播放器</title>
         <meta name="description" content="Apple Podcasts Web Player" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
