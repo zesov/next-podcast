@@ -17,7 +17,7 @@ const defaultEpisode: Episode = {
   feedImage: 'https://podcast.rthk.hk/podcast/upload_photo/item_photo/1400x1400_78.jpg',
 };
 
-export default function Player() {
+export default function Player({title=true}: {title?: boolean}) {
   const { currentEpisode: contextEpisode, toPlay, setToPlay } = useEpisode();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -166,6 +166,7 @@ export default function Player() {
       
       {/* 播放器界面 */}
       <div className="bg-white rounded-lg shadow p-4 mb-6 sticky top-20">
+        {title && (
         <div className="flex items-center mb-4">
           <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center">
             <img className=" text-indigo-500 text-xl" src={currentEpisode.image || currentEpisode.feedImage}></img>
@@ -174,7 +175,7 @@ export default function Player() {
             <h3 className="font-medium">{currentEpisode.title}</h3>
             <p className="text-sm text-gray-500">{currentEpisode.feedTitle}</p>
           </div>
-        </div>
+        </div>)}
         
         {/* 进度条 */}
         <div className="mb-4">

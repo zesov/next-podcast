@@ -1,13 +1,14 @@
-import { NextResponse } from 'next/server';
-// @ts-ignore
-import { PIApiEpisodeInfo } from 'podcastdx-client/types';
+import { NextRequest, NextResponse } from 'next/server';
 import { client } from '../db';
 
-export async function GET({ params }: { params: { id: number } }) {
+export async function GET(
+  request: NextRequest
+) {
   try {
-    const result = await client.episodesByFeedId(params.id,{max:10});
-    const episodes: PIApiEpisodeInfo[] = result.items;
-    return NextResponse.json(episodes);
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const result = await client.episodesByFeedId(Number(id),{max:10});
+    return NextResponse.json(result.items);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch posts' },

@@ -38,10 +38,9 @@ export default function TopEpisodes({items}: { items: any[] }) {
           <div key={index} className={`p-4 ${index < topEpisodes.length - 1 ? 'border-b' : ''}`}>
   <div className="flex items-start space-x-3"> 
     <div className="flex-shrink-0 relative w-24 h-24"> 
-      <Image
+      <img
         src={episode.image || episode.feedImage || "/default-icon.png"}
         alt={episode.title}
-        fill 
         className="rounded object-cover" 
       />
     </div>
