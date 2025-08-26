@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Image from 'next/image';
 import { Episode } from "../../types";
+import { use } from 'react';
 
 interface Podcast {
   id: string;
@@ -22,8 +22,9 @@ const fetchData = async (id: number) => {
   };
 }
 export default function EpisodePage({ params }: { params: { id: number } }) {
-  const episodeId = params.id;
-  console.log('params',episodeId)
+  // @ts-ignore
+  const { id } = use(params);
+  const episodeId = id;
 
   const [currentEpisode, setCurrentEpisode] = useState<Episode | null>(null);
   const [podcast, setPodcast] = useState<Podcast | null>(null);
@@ -82,7 +83,7 @@ export default function EpisodePage({ params }: { params: { id: number } }) {
           {/* 播客信息头部 */}
           <div className="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-8 mb-12">
             <div className="flex-shrink-0">
-              <Image
+              <img
                 src={podcast.image}
                 alt={podcast.title}
                 width={300}

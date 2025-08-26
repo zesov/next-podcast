@@ -64,7 +64,7 @@ export default function FeaturedSection({data}: { data: FeaturedItem[] }) {
             </div>
             
             <div className="p-4">
-              <h3 className="font-semibold text-lg mb-1 line-clamp-2">{item.title}</h3>
+              <a href={"/podcast/"+item.id} className="font-semibold text-lg mb-1 line-clamp-2">{item.title}</a>
               {/* <p className="text-gray-600 text-sm line-clamp-2">{item.description}</p> */}
               
               <div className="mt-3 flex items-center justify-between">
