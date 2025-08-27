@@ -1,4 +1,4 @@
-import { useEpisode } from '../contexts/EpisodeContext';
+import { useEpisode } from '../app/contexts/EpisodeContext';
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 

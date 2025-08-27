@@ -1,6 +1,6 @@
 'use client'; 
-import {FeaturedItem} from '../types';
-import { useEpisode } from '../contexts/EpisodeContext';
+import {FeaturedItem} from '../app/types';
+import { useEpisode } from '../app/contexts/EpisodeContext';
 import FeaturedCarousel from './FeaturedCarousel';
 
 export default function FeaturedSection({data}: { data: FeaturedItem[] }) {

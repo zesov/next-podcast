@@ -1,5 +1,5 @@
-import {TopPodcast} from "../types";
-import { useEpisode } from '../contexts/EpisodeContext';
+import {TopPodcast} from "../app/types";
+import { useEpisode } from '../app/contexts/EpisodeContext';
 import React, { useState, useRef, useEffect } from 'react';
 
 export default function TopPodcasts({data}:{data:TopPodcast[]}) {

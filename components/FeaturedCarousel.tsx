@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import {FeaturedItem} from '../types';
-import { useEpisode } from '../contexts/EpisodeContext';
+import {FeaturedItem} from '../app/types';
+import { useEpisode } from '../app/contexts/EpisodeContext';
 
 const FeaturedCarousel = ({ featuredItems }: {featuredItems: FeaturedItem[]}) => {
   // 手动控制幻灯片索引

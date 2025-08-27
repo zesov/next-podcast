@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { Episode } from "../types";
-import { useEpisode } from '../contexts/EpisodeContext';
+import { Episode } from "../app/types";
+import { useEpisode } from '../app/contexts/EpisodeContext';
 import Player from './Player';
 import { useRouter } from 'next/navigation';
 

@@ -1,5 +1,5 @@
 import { client } from "./api/db";
-import Main from './components/main';
+import Main from '../components/main';
 import { EpisodeProvider } from './contexts/EpisodeContext';
 
 export default async function Home() {

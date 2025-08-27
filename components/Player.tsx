@@ -1,7 +1,7 @@
 "use client"; // 添加这行指令
 import React, { useState, useRef, useEffect } from 'react';
-import {Episode} from '../types';
-import { useEpisode } from '../contexts/EpisodeContext';
+import {Episode} from '../app/types';
+import { useEpisode } from '../app/contexts/EpisodeContext';
 
 const defaultEpisode: Episode = {
   id: 1,
