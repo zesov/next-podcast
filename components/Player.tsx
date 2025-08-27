@@ -165,7 +165,7 @@ export default function Player({title=true}: {title?: boolean}) {
       />
       
       {/* 播放器界面 */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6 sticky top-20">
+      <div className="bg-white rounded-lg shadow p-4 mb-6 lg:sticky lg:top-20 mobile-fixed-bottom">
         {title && (
         <div className="flex items-center mb-4">
           <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center">

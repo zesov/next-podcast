@@ -49,3 +49,14 @@ body {
 .slick-dots li.slick-active button:before {
   color: #000 !important; /* 激活分页点颜色 */
 }
+
+@media (max-width: 1023px) {
+  .mobile-fixed-bottom {
+    position: fixed !important; /* 覆盖原有sticky样式 */
+    top: auto !important; /* 取消top定位 */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+  }
+}
