@@ -1,6 +1,6 @@
 import {TopPodcast} from "../app/types";
 import { useEpisode } from '../app/contexts/EpisodeContext';
-import React, { useState, useRef, useEffect } from 'react';
+// import React from 'react';
 
 export default function TopPodcasts({data}:{data:TopPodcast[]}) {
 //   const topPodcasts = [
@@ -13,7 +13,6 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
   const topPodcasts = data;
   const { setCurrentEpisode, setToPlay } = useEpisode();
   const handleClick = async (item: any) => {
-    // console.log(item);
     const res = await fetch(`/api/episodesByFeedId?id=${item.id}`)
     const episodes = await res.json();    
     setCurrentEpisode(episodes[0]);
@@ -28,6 +27,7 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
             <li key={index} className="p-4 hover:bg-gray-50">
               <div className="flex items-center">
                 <span className="text-gray-500 w-6 text-center">{index + 1}</span>
+                <img className="w-12 h-12 rounded-full" src={podcast.image} alt={podcast.title} />
                 <div className="ml-4 flex-1">
                   <h3 className="font-medium">{podcast.title}</h3>
                   <p className="text-sm text-gray-500">最新更新: {(new Date(podcast.newestItemPublishTime*1000)).toDateString()}</p>
