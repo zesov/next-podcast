@@ -4,12 +4,24 @@ import { EpisodeProvider } from './contexts/EpisodeContext';
 
 export default async function Home() {
   const query = "rthk";
-  const {feeds} = await client.search(query,{max:4});
-  const topPodcasts = await client.trending({max:6});
-  const recentEpisodes = await client.recentEpisodes({max:6});
+  const [feedsData, topPodcastsData, recentEpisodesData, episodesRandomData, categoriesData] = await Promise.all([
+    client.search(query,{max:8}),
+    client.trending({ max: 6 }),
+    client.recentEpisodes({ max: 6 }),
+    client.episodesRandom({ max: 3 }),
+    client.categories(),
+  ]);
+
+  const { feeds } = feedsData;
+  const topPodcasts = topPodcastsData;
+  const recentEpisodes = recentEpisodesData;
+  const episodesRandom = episodesRandomData;
+  const categories = categoriesData;
+
   return (
     <EpisodeProvider>
-      <Main feeds={feeds} topPodcasts={topPodcasts} recentEpisodes={recentEpisodes} />
+      <Main feeds={feeds} topPodcasts={topPodcasts} 
+      recentEpisodes={recentEpisodes} episodesRandom={episodesRandom} categories={categories}/>
     </EpisodeProvider>
   );
 }

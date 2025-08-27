@@ -10,7 +10,7 @@ import Recommended from './Recommended'
 import Categories from './Categories'
 import Footer from './Footer'
 
-export default function Index({feeds,topPodcasts,recentEpisodes}: any) {
+export default function Index({feeds,topPodcasts,recentEpisodes,episodesRandom,categories}: any) {
 
   return (
     <>
@@ -35,8 +35,8 @@ export default function Index({feeds,topPodcasts,recentEpisodes}: any) {
 
           <div className="lg:w-1/3">
             <Player />
-            <Recommended />
-            <Categories />
+            <Recommended items={episodesRandom.episodes}/>
+            <Categories items={categories.feeds}/>
           </div>
         </div>
       </div>

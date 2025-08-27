@@ -1,6 +1,5 @@
 import { useEpisode } from '../app/contexts/EpisodeContext';
 import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 
 export default function TopEpisodes({items}: { items: any[] }) {
 //   const topEpisodes = [
@@ -21,7 +20,6 @@ export default function TopEpisodes({items}: { items: any[] }) {
 //     }
 //   ];
   const topEpisodes = items;
-  console.log(items);
   const { setCurrentEpisode, setToPlay } = useEpisode();
   const handleClick = async (item: any) => {
     setCurrentEpisode(item);
@@ -36,36 +34,36 @@ export default function TopEpisodes({items}: { items: any[] }) {
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {topEpisodes.map((episode, index) => (
           <div key={index} className={`p-4 ${index < topEpisodes.length - 1 ? 'border-b' : ''}`}>
-  <div className="flex items-start space-x-3"> 
-    <div className="flex-shrink-0 relative w-24 h-24"> 
-      <img
-        src={episode.image || episode.feedImage || "/default-icon.png"}
-        alt={episode.title}
-        className="rounded object-cover" 
-      />
-    </div>
-    <div className="flex-grow"> 
-      <h3 className="font-semibold text-lg mb-2">{episode.title}</h3>
-      {/* <p className="text-gray-600 text-sm mb-3">{episode.description}</p> */}
-      <div dangerouslySetInnerHTML={{ __html: episode.description.slice(0, 80) }} />
-      
-      <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-500">{episode.podcast}</span>
-        <div className="flex space-x-2">
-          <button className="text-gray-500 hover:text-gray-700">
-            <i className="far fa-heart"></i>
-          </button>
-          <button 
-            className="text-indigo-600 hover:text-indigo-800"
-            onClick={() => handleClick(episode)}
-          >
-            <i className="fas fa-play"></i>
-          </button>
+          <div className="flex items-start space-x-3"> 
+            <div className="flex-shrink-0 relative w-24 h-24"> 
+              <img
+                src={episode.image || episode.feedImage || "/default-icon.png"}
+                alt={episode.title}
+                className="rounded object-cover" 
+              />
+            </div>
+            <div className="flex-grow"> 
+              <h3 className="font-semibold text-lg mb-2">{episode.title}</h3>
+              {/* <p className="text-gray-600 text-sm mb-3">{episode.description}</p> */}
+              <div dangerouslySetInnerHTML={{ __html: episode.description.slice(0, 80) }} />
+              
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500">{episode.podcast}</span>
+                <div className="flex space-x-2">
+                  <button className="text-gray-500 hover:text-gray-700">
+                    <i className="far fa-heart"></i>
+                  </button>
+                  <button 
+                    className="text-indigo-600 hover:text-indigo-800"
+                    onClick={() => handleClick(episode)}
+                  >
+                    <i className="fas fa-play"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
         ))}
       </div>
     </section>
