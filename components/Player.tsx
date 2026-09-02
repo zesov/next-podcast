@@ -2,10 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {Episode} from '../app/types';
 import { useEpisode } from '../app/contexts/EpisodeContext';
+import { useTranslations } from 'next-intl';
 
 const defaultEpisode: Episode = {
   id: 1,
-  title: '未选择节目',
+  title: '',
   description: '',
   enclosureUrl: 'https://podcast.rthk.hk/podcast/media/enca_hktoday/78_2508250850_71679.mp3',
   enclosureType: 'audio/mpeg',
@@ -18,6 +19,7 @@ const defaultEpisode: Episode = {
 };
 
 export default function Player({title=true}: {title?: boolean}) {
+  const t = useTranslations('player');
   const { currentEpisode: contextEpisode, toPlay, setToPlay } = useEpisode();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -63,7 +65,7 @@ export default function Player({title=true}: {title?: boolean}) {
       audio.pause();
     } else {
       audio.play().catch(error => {
-        console.error("播放失败:", error);
+        console.error(t("playbackFailed"), error);
       });
     }
     setIsPlaying(!isPlaying);
@@ -143,7 +145,7 @@ export default function Player({title=true}: {title?: boolean}) {
       setCurrentTime(0);
       setDuration(audio.duration);
         audio.play().catch(error => {
-          console.error("播放失败:", error);
+          console.error(t("playbackFailed"), error);
         });
       setIsPlaying(true);
       setToPlay(false);
@@ -172,7 +174,7 @@ export default function Player({title=true}: {title?: boolean}) {
             <img className=" text-indigo-500 text-xl" src={currentEpisode.image || currentEpisode.feedImage || '/music.svg'}></img>
           </div>
           <div className="ml-4">
-            <h3 className="font-medium">{currentEpisode.title}</h3>
+            <h3 className="font-medium">{currentEpisode.title || t('notSelected')}</h3>
             <p className="text-sm text-gray-500">{currentEpisode.feedTitle}</p>
           </div>
         </div>)}

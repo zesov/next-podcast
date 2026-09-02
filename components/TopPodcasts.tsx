@@ -1,8 +1,11 @@
+'use client';
 import {TopPodcast} from "../app/types";
 import { useEpisode } from '../app/contexts/EpisodeContext';
+import { useTranslations } from 'next-intl';
 // import React from 'react';
 
 export default function TopPodcasts({data}:{data:TopPodcast[]}) {
+  const t = useTranslations('home');
 //   const topPodcasts = [
 //     { name: "岩中花述 GIADA | JustPod", update: "8月8日更新" },
 //     { name: "天真不天真 杨天真本真", update: "每周更新" },
@@ -20,7 +23,7 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
   };  
   return (
     <section className="mb-8">
-      <h2 className="text-xl font-bold mb-4">热门节目排行</h2>
+      <h2 className="text-xl font-bold mb-4">{t('topPodcasts')}</h2>
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <ul className="divide-y divide-gray-200">
           {topPodcasts.map((podcast, index) => (
@@ -30,7 +33,7 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
                 <img className="w-12 h-12 rounded-full" src={podcast.image} alt={podcast.title} />
                 <div className="ml-4 flex-1">
                   <h3 className="font-medium">{podcast.title}</h3>
-                  <p className="text-sm text-gray-500">最新更新: {(new Date(podcast.newestItemPublishTime*1000)).toDateString()}</p>
+                  <p className="text-sm text-gray-500">{t('latestUpdate')}: {(new Date(podcast.newestItemPublishTime*1000)).toDateString()}</p>
                 </div>
                 <button className="text-indigo-600 hover:text-indigo-800"
                   onClick={() => handleClick(podcast)}

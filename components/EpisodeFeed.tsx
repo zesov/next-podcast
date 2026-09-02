@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { Episode } from "../app/types";
 import { useEpisode } from '../app/contexts/EpisodeContext';
+import { useTranslations } from 'next-intl';
 import Player from './Player';
 import { useRouter } from 'next/navigation';
 
@@ -24,6 +25,7 @@ const fetchData = async (id: number) => {
   };
 }
 export default function EpisodePage({id}: {id:number}) {
+  const t = useTranslations('episode');
   // @ts-ignore
 //   const { id } = use(params);
   const episodeId = id;
@@ -59,7 +61,7 @@ export default function EpisodePage({id}: {id:number}) {
   };
 
   if (!podcast || !currentEpisode) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center min-h-screen">{t('loading')}</div>;
   }
 
   return (
@@ -126,7 +128,7 @@ export default function EpisodePage({id}: {id:number}) {
           {/* 剧集列表 */}
           <div className="bg-white rounded-2xl shadow-md overflow-hidden">
             <div className="px-6 py-4 border-b">
-              <h3 className="text-xl font-semibold text-gray-900">All Episodes</h3>
+              <h3 className="text-xl font-semibold text-gray-900">{t('allEpisodes')}</h3>
             </div>
             
             <div className="divide-y">

@@ -1,7 +1,10 @@
+'use client';
 import { useEpisode } from '../app/contexts/EpisodeContext';
+import { useTranslations } from 'next-intl';
 import React, { useState, useRef, useEffect } from 'react';
 
 export default function TopEpisodes({items}: { items: any[] }) {
+  const t = useTranslations('home');
 //   const topEpisodes = [
 //     {
 //       title: "什么叫爱自己?",
@@ -30,7 +33,7 @@ export default function TopEpisodes({items}: { items: any[] }) {
   }, [items]);
   return (
     <section>
-      <h2 className="text-xl font-bold mb-4">热门单集排行</h2>
+      <h2 className="text-xl font-bold mb-4">{t('topEpisodes')}</h2>
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {topEpisodes.map((episode, index) => (
           <div key={index} className={`p-4 ${index < topEpisodes.length - 1 ? 'border-b' : ''}`}>
@@ -44,8 +47,14 @@ export default function TopEpisodes({items}: { items: any[] }) {
             </div>
             <div className="flex-grow"> 
               <h3 className="font-semibold text-lg mb-2">{episode.title}</h3>
-              {/* <p className="text-gray-600 text-sm mb-3">{episode.description}</p> */}
-              <div dangerouslySetInnerHTML={{ __html: episode.description.slice(0, 80) }} />
+              {/* 描述以纯文本呈现（去除 HTML 标签）后截断，避免原始 HTML 被 slice 截断成残缺标签，
+                  导致浏览器解析出的 DOM 与 React 客户端构建不一致，从而触发 hydration mismatch */}
+              <p className="text-gray-600 text-sm mb-3">
+                {String(episode.description || '')
+                  .replace(/<[^>]*>/g, '')
+                  .trim()
+                  .slice(0, 80)}
+              </p>
               
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">{episode.podcast}</span>

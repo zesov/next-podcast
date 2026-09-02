@@ -1,9 +1,11 @@
 'use client'; 
 import {FeaturedItem} from '../app/types';
 import { useEpisode } from '../app/contexts/EpisodeContext';
+import { useTranslations } from 'next-intl';
 import FeaturedCarousel from './FeaturedCarousel';
 
 export default function FeaturedSection({data}: { data: FeaturedItem[] }) {
+  const t = useTranslations('home');
 //   const featuredItems = [
 //     {
 //       title: "解读非暴力沟通的深层含义",
@@ -34,9 +36,9 @@ export default function FeaturedSection({data}: { data: FeaturedItem[] }) {
   return (
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">精选播客</h2>
+        <h2 className="text-2xl font-bold">{t('featured')}</h2>
         <a href="#" className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-          查看全部
+          {t('viewAll')}
         </a>
       </div>
       <FeaturedCarousel featuredItems={featuredItems} />

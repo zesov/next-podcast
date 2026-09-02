@@ -34,3 +34,10 @@ Playback state is shared via the `EpisodeContext` (`useEpisode` hook), which wra
 - `tsconfig.json` `include` references `podcast/[id]/page.js` — a stale entry; the real file is `app/podcast/[id]/page.tsx`. Don't "fix" it without checking nothing depends on it.
 - `.code-context/` is untracked (agent scratch dir) — don't commit it.
 - No test infra exists; if you add behavior, verify via `npm run build` + manual dev-server check rather than inventing a test framework.
+
+## Important
+- 使用frontend-design skills
+- omo Delegated tasks任务分配10秒超时无反应后，用主agent直接执行
+
+### browse playwright
+- 直接使用bash命令 uvx playwright  

@@ -1,7 +1,10 @@
+'use client';
 import { useEpisode } from '../app/contexts/EpisodeContext';
+import { useTranslations } from 'next-intl';
 import React, { useState, useRef, useEffect } from 'react';
 
 export default function Recommended({items}: { items: any[] }) {
+  const t = useTranslations('home');
   const recommended = [
     { name: "思文,败类", author: "思文败类" },
     { name: "声动早咖啡", author: "声动活泼" },
@@ -17,7 +20,7 @@ export default function Recommended({items}: { items: any[] }) {
   }, [items]);
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-6">
-      <h3 className="font-bold mb-4">为你推荐</h3>
+      <h3 className="font-bold mb-4">{t('recommended')}</h3>
       <div className="space-y-4">
         {items.map((item, index) => (
           <div key={index} className="flex items-center relative cursor-pointer"

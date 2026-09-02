@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "hls.js": "^1.7.1",
     "next": "15.5.0",
+    "next-intl": "^4.14.2",
     "podcastdx-client": "^5.1.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",

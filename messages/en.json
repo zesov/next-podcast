@@ -1,0 +1,83 @@
+{
+  "navbar": {
+    "brand": "Podcast",
+    "browse": "Browse",
+    "live": "Live",
+    "ranking": "Rankings",
+    "categories": "Categories",
+    "searchPlaceholder": "Search podcasts, episodes or creators"
+  },
+  "footer": {
+    "explore": "Explore",
+    "browse": "Browse",
+    "ranking": "Rankings",
+    "categories": "Categories",
+    "about": "About",
+    "aboutUs": "About Us",
+    "creators": "Creators",
+    "jobs": "Careers",
+    "support": "Support",
+    "help": "Help Center",
+    "guidelines": "Community Guidelines",
+    "feedback": "Feedback",
+    "follow": "Follow Us",
+    "copyright": "Copyright © 2025 Apple Inc. All rights reserved."
+  },
+  "home": {
+    "featured": "Featured Podcasts",
+    "viewAll": "View all",
+    "browseCategories": "Browse by Category",
+    "topPodcasts": "Top Podcasts",
+    "latestUpdate": "Latest update",
+    "topEpisodes": "Top Episodes",
+    "recommended": "Recommended for you",
+    "hotCategories": "Hot Categories"
+  },
+  "categoryNames": {
+    "history": "History",
+    "healthFitness": "Health & Fitness",
+    "investing": "Investing",
+    "mentalHealth": "Mental Health",
+    "fiction": "Fiction",
+    "tvFilm": "TV & Film",
+    "selfImprovement": "Self-Improvement",
+    "comedy": "Comedy"
+  },
+  "player": {
+    "notSelected": "No episode selected",
+    "playbackFailed": "Playback failed"
+  },
+  "episode": {
+    "loading": "Loading…",
+    "allEpisodes": "All Episodes"
+  },
+  "live": {
+    "title": "📺 Live TV",
+    "subtitle": "RTHK free live channels",
+    "all": "All",
+    "channelCount": "{count} channels",
+    "selectChannel": "Select a channel to start 👈",
+    "selectHint": "Choose a channel to play",
+    "live": "LIVE",
+    "play": "Play",
+    "pause": "Pause",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "fullscreen": "Fullscreen",
+    "tv": "TV",
+    "radio": "Radio",
+    "epgTitle": "Program Guide",
+    "epgSample": "Sample schedule",
+    "nowPlaying": "● On air",
+    "epgEmpty": "Select a channel to view the program guide",
+    "unsupported": "This browser does not support HLS playback. Please use the latest Chrome / Edge / Safari.",
+    "categoryName": "{name} Channels",
+    "categories": {
+      "news": "News",
+      "music": "Music",
+      "culture": "Culture",
+      "english": "English",
+      "mandarin": "Mandarin"
+    }
+  }
+}

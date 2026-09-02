@@ -1,0 +1,83 @@
+{
+  "navbar": {
+    "brand": "播客",
+    "browse": "浏览",
+    "live": "直播",
+    "ranking": "排行榜",
+    "categories": "分类",
+    "searchPlaceholder": "搜索播客、单集或创作者"
+  },
+  "footer": {
+    "explore": "探索",
+    "browse": "浏览",
+    "ranking": "排行榜",
+    "categories": "分类",
+    "about": "关于",
+    "aboutUs": "关于我们",
+    "creators": "创作者",
+    "jobs": "工作机会",
+    "support": "支持",
+    "help": "帮助中心",
+    "guidelines": "社区指南",
+    "feedback": "反馈",
+    "follow": "关注我们",
+    "copyright": "Copyright © 2025 Apple Inc. 保留所有权利。"
+  },
+  "home": {
+    "featured": "精选播客",
+    "viewAll": "查看全部",
+    "browseCategories": "分类浏览",
+    "topPodcasts": "热门节目排行",
+    "latestUpdate": "最新更新",
+    "topEpisodes": "热门单集排行",
+    "recommended": "为你推荐",
+    "hotCategories": "热门分类"
+  },
+  "categoryNames": {
+    "history": "历史",
+    "healthFitness": "健康与健身",
+    "investing": "投资",
+    "mentalHealth": "心理健康",
+    "fiction": "小说",
+    "tvFilm": "电视与电影",
+    "selfImprovement": "自我完善",
+    "comedy": "喜剧"
+  },
+  "player": {
+    "notSelected": "未选择节目",
+    "playbackFailed": "播放失败"
+  },
+  "episode": {
+    "loading": "加载中…",
+    "allEpisodes": "全部剧集"
+  },
+  "live": {
+    "title": "📺 直播",
+    "subtitle": "香港電台免費直播頻道",
+    "all": "全部",
+    "channelCount": "{count} 個頻道",
+    "selectChannel": "请选择一个频道开始观看 👈",
+    "selectHint": "選擇左側頻道，即時播放",
+    "live": "LIVE",
+    "play": "播放",
+    "pause": "暫停",
+    "mute": "靜音",
+    "unmute": "取消靜音",
+    "fullscreen": "全屏",
+    "tv": "電視",
+    "radio": "電台",
+    "epgTitle": "節目指南",
+    "epgSample": "示例節目表",
+    "nowPlaying": "● 播放中",
+    "epgEmpty": "选择频道后查看节目指南",
+    "unsupported": "此浏览器不支持 HLS 播放，请使用最新版 Chrome / Edge / Safari。",
+    "categoryName": "{name}頻道",
+    "categories": {
+      "news": "新闻",
+      "music": "音乐",
+      "culture": "文化",
+      "english": "英语",
+      "mandarin": "国语"
+    }
+  }
+}
