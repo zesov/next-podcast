@@ -1,24 +1,28 @@
 'use client';
 import React, { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { CATEGORIES, liveChannels, LiveChannel, CategoryKey } from './liveChannels';
+import { CATEGORIES, LiveChannel, CategoryKey } from './liveChannels';
 import LiveTvPlayer from './LiveTvPlayer';
 import LiveChannelGrid from './LiveChannelGrid';
 import LiveEpw from './LiveEpw';
 
-export default function LiveTvPage() {
+interface LiveTvPageProps {
+  channels: LiveChannel[];
+}
+
+export default function LiveTvPage({ channels }: LiveTvPageProps) {
   const t = useTranslations('live');
   const [activeCategory, setActiveCategory] = useState<CategoryKey | 'all'>(CATEGORIES[0]);
   const [activeChannel, setActiveChannel] = useState<LiveChannel | null>(
-    liveChannels[0] ?? null
+    channels[0] ?? null
   );
 
   const filteredChannels = useMemo(
     () =>
       activeCategory === 'all'
-        ? liveChannels
-        : liveChannels.filter((c) => c.category === activeCategory),
-    [activeCategory]
+        ? channels
+        : channels.filter((c) => c.category === activeCategory),
+    [activeCategory, channels]
   );
 
   const tabs: (CategoryKey | 'all')[] = ['all', ...CATEGORIES];
