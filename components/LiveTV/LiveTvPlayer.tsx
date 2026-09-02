@@ -4,10 +4,16 @@ import { useTranslations } from 'next-intl';
 import type Hls from 'hls.js';
 import { LiveChannel } from './liveChannels';
 
-// 电视/电台直播播放器（支持 HLS 视频与音频）
-// Safari 原生支持 HLS；其他浏览器使用 hls.js（动态导入避免 SSR window 报错）
+// 直播播放器（HLS 视频/音频）
+// Safari 原生支持 HLS；其他浏览器使用 hls.js（动态导入避免 SSR window 报错）。
+// 部分频道地址为 bally:// 等自定义协议或短链，浏览器无法直接播放，需解析后才能播。
 interface LiveTvPlayerProps {
   channel: LiveChannel | null;
+}
+
+// 是否为可由 <video>/hls.js 直接播放的 http(s) 地址
+function isHttpUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url);
 }
 
 export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
@@ -18,9 +24,17 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
 
+  const playableUrl = channel && isHttpUrl(channel.streamUrl) ? channel.streamUrl : null;
+
   // 切换频道时重建播放器
   useEffect(() => {
     if (!channel || !mediaRef.current) return;
+
+    // 非 http(s) 地址无法直接播放，提示
+    if (!isHttpUrl(channel.streamUrl)) {
+      setIsSupported(false);
+      return () => {};
+    }
 
     const media = mediaRef.current;
     let hls: Hls | null = null;
@@ -52,6 +66,7 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
     }
 
     setIsPlaying(false);
+    setIsSupported(true);
 
     return () => {
       destroyed = true;
@@ -108,7 +123,10 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
           <span className="text-sm font-semibold text-white">{t("live")}</span>
         </div>
-        <span className="text-sm text-gray-300 truncate">{channel.name}</span>
+        <span className="text-sm text-gray-300 truncate">
+          {channel.name}
+          {channel.number != null && <span className="ml-2 text-gray-500">CH {channel.number}</span>}
+        </span>
       </div>
 
       {channel.type === 'video' ? (
@@ -132,30 +150,35 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
         </div>
       )}
 
-      {!isSupported && (
+      {!isSupported && channel && (
         <p className="px-4 py-2 text-sm text-yellow-400 bg-gray-800">
-          此浏览器不支持 HLS 播放，请使用最新版 Chrome / Edge / Safari。
+          {playableUrl
+            ? t('unsupported')
+            : `${t('nonHttpStream')} (${channel.streamUrl.slice(0, 30)}…)`}
         </p>
       )}
 
       <div className="flex items-center justify-center space-x-4 px-4 py-3 bg-gray-800">
         <button
           onClick={togglePlay}
-          className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center"
+          disabled={!playableUrl}
+          className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={isPlaying ? t("pause") : t("play")}
         >
           <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play'}`}></i>
         </button>
         <button
           onClick={toggleMute}
-          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center"
+          disabled={!playableUrl}
+          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={isMuted ? t("unmute") : t("mute")}
         >
           <i className={`fas ${isMuted ? 'fa-volume-mute' : 'fa-volume-up'}`}></i>
         </button>
         <button
           onClick={toggleFullscreen}
-          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center"
+          disabled={!playableUrl}
+          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={t("fullscreen")}
         >
           <i className="fas fa-expand"></i>

@@ -9,7 +9,7 @@ interface LiveChannelGridProps {
   onSelect: (channel: LiveChannel) => void;
 }
 
-// 频道卡片网格（Plex 风格：缩略图 + 频道名 + 分类）
+// 频道卡片网格（Plex 风格：缩略图 + 频道名 + 分类/来源）
 export default function LiveChannelGrid({ channels, activeId, onSelect }: LiveChannelGridProps) {
   const t = useTranslations('live');
   return (
@@ -32,6 +32,7 @@ export default function LiveChannelGrid({ channels, activeId, onSelect }: LiveCh
                 <img
                   src={channel.logo}
                   alt={channel.name}
+                  loading="lazy"
                   className="w-full h-full object-contain p-2"
                 />
               ) : (
@@ -42,16 +43,21 @@ export default function LiveChannelGrid({ channels, activeId, onSelect }: LiveCh
               {active && (
                 <span className="absolute top-2 left-2 flex items-center space-x-1 bg-red-600 text-white text-xs px-2 py-0.5 rounded">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                  LIVE
+                  {t('live')}
                 </span>
               )}
-              <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
-                {channel.type === 'video' ? t('tv') : t('radio')}
-              </span>
+              {channel.number != null && (
+                <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                  CH {channel.number}
+                </span>
+              )}
             </div>
             <div className="p-2">
               <p className="text-sm font-semibold text-gray-900 truncate">{channel.name}</p>
-              <p className="text-xs text-gray-500 truncate">{channel.description}</p>
+              <p className="text-xs text-gray-500 truncate">
+                {channel.category}
+                {channel.language ? ` · ${channel.language.toUpperCase()}` : ''}
+              </p>
             </div>
           </button>
         );
