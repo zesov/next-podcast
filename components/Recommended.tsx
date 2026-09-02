@@ -24,7 +24,7 @@ export default function Recommended({items}: { items: any[] }) {
              onClick={() => handleClick(item)}
           >
             <div className="w-12 h-12 bg-indigo-100 rounded-lg flex-shrink-0">
-              <img src={item.image} alt={item.title} className="w-full h-full rounded-lg" />
+              <img src={item.image || '/music.svg'} alt={item.title} className="w-full h-full rounded-lg" />
             </div>
             <div className="ml-3">
               <h4 className="font-medium text-sm">{item.title}</h4>
