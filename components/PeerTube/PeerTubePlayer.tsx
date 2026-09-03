@@ -1,12 +1,20 @@
 "use client";
 import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
 import type { PeerTubeVideo } from "@/app/types";
+
+interface PlayerElementProps {
+  controls?: boolean;
+  src?: string;
+  poster?: string;
+  className?: string;
+}
 
 const PeerTubeVideoElement = dynamic(
   () =>
     import("peertube-video-element/react").then(
-      (mod) => mod.default,
-    ) as unknown as typeof import("react").ComponentType<Record<string, unknown>>,
+      (mod) => mod.default as ComponentType<PlayerElementProps>,
+    ),
   { ssr: false, loading: () => <PlayerLoading /> },
 );
 

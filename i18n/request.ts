@@ -11,9 +11,20 @@ export default getRequestConfig(async ({ requestLocale }) => {
     ? requested
     : routing.defaultLocale;
 
+  const [shared, podcast, live, peertube] = await Promise.all([
+    import(`../messages/${locale}/shared.json`),
+    import(`../messages/${locale}/podcast.json`),
+    import(`../messages/${locale}/live.json`),
+    import(`../messages/${locale}/peertube.json`),
+  ]);
+
   return {
     locale,
-    // 加载语言包（相对于 i18n/ 目录）
-    messages: (await import(`../messages/${locale}.json`)).default,
+    messages: {
+      ...shared.default,
+      ...podcast.default,
+      ...live.default,
+      ...peertube.default,
+    },
   };
 });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { PeerTubeSearchResponse, PeerTubeVideo } from "../types";
+import type { PeerTubeSearchResponse, PeerTubeVideo } from "@/app/types";
 
 const SEPIA_BASE = "https://sepiasearch.org/api/v1/search/videos";
 

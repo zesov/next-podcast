@@ -1,0 +1,14 @@
+{
+  "peertube": {
+    "title": "PeerTube Video",
+    "subtitle": "Aggregated PeerTube videos from the SepiaSearch index. Play them right here.",
+    "searchPlaceholder": "Search PeerTube videos…",
+    "search": "Search",
+    "searching": "Searching…",
+    "close": "Close",
+    "resultCount": "{count} results",
+    "emptyResult": "No results for “{query}”. Try another keyword.",
+    "initialEmpty": "No videos to show. Try a search above.",
+    "searchError": "Failed to fetch PeerTube videos. Please try again."
+  }
+}
