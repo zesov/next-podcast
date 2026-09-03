@@ -144,31 +144,30 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
 
       {/* 搜索框 */}
       <div className="mb-6 flex gap-2 max-w-2xl">
-        <div className="relative flex-1">
+        <label className="relative flex h-10 flex-1 items-center gap-3 rounded-lg border border-gray-300 bg-white px-4">
           <input
-            type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t("searchPlaceholder")}
-            className="flex-1 px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+            className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
           />
           {searchTerm && (
             <button
               type="button"
               onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600"
               aria-label={t("clearSearch")}
             >
               <X className="w-5 h-5" />
             </button>
           )}
-        </div>
+        </label>
         <button
           type="button"
           onClick={() => runSearch(searchTerm.trim(), filters)}
           disabled={loading}
-          className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium disabled:opacity-50"
+          className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium disabled:opacity-50 h-10"
         >
           {loading ? t("searching") : t("search")}
         </button>
