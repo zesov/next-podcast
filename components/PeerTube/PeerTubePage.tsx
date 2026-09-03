@@ -1,12 +1,12 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslations, useFormatter } from "next-intl";
 import type { PeerTubeVideo } from "@/app/types";
 import type { PeerTubeFilters as PeerTubeFiltersType } from "@/app/types";
 import PeerTubeVideoCard from "./PeerTubeVideoCard";
 import PeerTubePlayer from "./PeerTubePlayer";
 import PeerTubeFilters from "./PeerTubeFilters";
-import { X } from "lucide-react";
+import { X, Search, SlidersHorizontal } from "lucide-react";
 
 interface Props {
   initialVideos: PeerTubeVideo[];
@@ -86,6 +86,21 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState<Partial<PeerTubeFiltersType>>(DEFAULT_FILTERS);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsFiltersOpen(false);
+      }
+    };
+    if (isFiltersOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isFiltersOpen]);
 
   const runSearch = useCallback(async (query: string, currentFilters?: Partial<PeerTubeFiltersType>) => {
     setLoading(true);
@@ -133,6 +148,26 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
     setSearchTerm("");
   };
 
+  const handleReset = useCallback(() => {
+    const defaults: Partial<PeerTubeFiltersType> = {
+      sort: "-match",
+      nsfw: null,
+      resultType: "videos",
+      isLive: null,
+      publishedDateRange: "any_published_date",
+      durationRange: "any_duration",
+      categoryOneOf: "",
+      licenceOneOf: "",
+      languageOneOf: "",
+      tagsAllOf: [],
+      tagsOneOf: [],
+      host: "",
+    };
+    setFilters(defaults);
+    setIsFiltersOpen(false);
+    runSearch(searchTerm.trim() || "", defaults);
+  }, [runSearch, searchTerm]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
@@ -142,35 +177,76 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
         <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
       </div>
 
-      {/* 搜索框 */}
-      <div className="mb-6 flex gap-2 max-w-2xl">
-        <label className="relative flex h-10 flex-1 items-center gap-3 rounded-lg border border-gray-300 bg-white px-4">
-          <input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t("searchPlaceholder")}
-            className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={handleClearSearch}
-              className="text-gray-400 hover:text-gray-600"
-              aria-label={t("clearSearch")}
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </label>
-        <button
-          type="button"
-          onClick={() => runSearch(searchTerm.trim(), filters)}
-          disabled={loading}
-          className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium disabled:opacity-50 h-10"
-        >
-          {loading ? t("searching") : t("search")}
-        </button>
+      {/* 搜索框 - Odoo style pill-shaped container */}
+      <div className="mb-6 relative">
+        <div className="flex items-center gap-2 max-w-2xl">
+          {/* Search input area - pill left side */}
+          <label className="relative flex h-10 flex-1 items-center gap-2 rounded-l-full border border-gray-300 bg-white px-4">
+            <Search aria-hidden="true" className="size-4 shrink-0 text-gray-400" />
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => !isFiltersOpen && setIsFiltersOpen(true)}
+              onClick={() => !isFiltersOpen && setIsFiltersOpen(true)}
+              placeholder={t("searchPlaceholder")}
+              className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="text-gray-400 hover:text-gray-600"
+                aria-label={t("clearSearch")}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </label>
+          {/* Filter button - middle of pill */}
+          <button
+            type="button"
+            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+            className="flex h-10 items-center gap-2 border-y border-gray-300 bg-white px-4 hover:bg-gray-50 text-gray-700 transition"
+            aria-label={t("filters.title")}
+            aria-expanded={isFiltersOpen}
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+          </button>
+          {/* Search button - pill right side */}
+          <button
+            type="button"
+            onClick={() => runSearch(searchTerm.trim(), filters)}
+            disabled={loading}
+            className="flex h-10 items-center gap-2 rounded-r-full border border-indigo-600 bg-indigo-600 px-5 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
+          >
+            {loading ? t("searching") : t("search")}
+          </button>
+        </div>
+
+        {/* Filters Dropdown - Odoo style */}
+        {isFiltersOpen && (
+          <div
+            ref={dropdownRef}
+            className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg p-3 max-h-96 overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-medium text-gray-900">{t("filters.title")}</h2>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-xs text-indigo-600 hover:text-indigo-800"
+              >
+                {t("filters.reset")}
+              </button>
+            </div>
+            <PeerTubeFilters
+              initialFilters={filters}
+              onApply={handleApplyFilters}
+            />
+          </div>
+        )}
       </div>
 
       {/* 内联播放器 */}
@@ -213,7 +289,7 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
       {/* 主内容区：左侧筛选器 + 右侧视频网格 */}
       <div className="flex flex-col lg:flex-row gap-8">
         {/* 左侧筛选器面板 */}
-        <aside className="w-full lg:w-72 flex-shrink-0">
+        <aside className="w-full lg:w-72 flex-shrink-0 hidden">
           <PeerTubeFilters
             initialFilters={filters}
             onApply={handleApplyFilters}
