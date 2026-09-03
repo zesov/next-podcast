@@ -41,7 +41,7 @@ export default async function PeerTubeHome({ params }: Props) {
   return (
     <>
       <Navbar />
-      <PeerTubePage initialVideos={initial.data} />
+      <PeerTubePage initialVideos={initial.data} initialTotal={initial.total} />
       <Footer />
     </>
   );

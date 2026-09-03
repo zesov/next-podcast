@@ -1,18 +1,20 @@
 "use client";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 import type { PeerTubeVideo } from "@/app/types";
 import PeerTubeVideoCard from "./PeerTubeVideoCard";
 import PeerTubePlayer from "./PeerTubePlayer";
 
 interface Props {
   initialVideos: PeerTubeVideo[];
+  initialTotal?: number;
 }
 
-export default function PeerTubePage({ initialVideos }: Props) {
+export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props) {
   const t = useTranslations("peertube");
+  const format = useFormatter();
   const [videos, setVideos] = useState<PeerTubeVideo[]>(initialVideos);
-  const [total, setTotal] = useState(initialVideos.length);
+  const [total, setTotal] = useState(initialTotal);
   const [searchTerm, setSearchTerm] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [selected, setSelected] = useState<PeerTubeVideo | null>(null);
@@ -121,7 +123,7 @@ export default function PeerTubePage({ initialVideos }: Props) {
       {videos.length > 0 && (
         <>
           <div className="mb-4 text-sm text-gray-500">
-            {t("resultCount", { count: total })}
+            {t("resultCount", { count: format.number(total) })}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {videos.map((video) => (
