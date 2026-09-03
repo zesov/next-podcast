@@ -12,13 +12,13 @@ const SORT_OPTIONS = [
   { value: "-match", labelKey: "bestMatch" },
   { value: "-publishedAt", labelKey: "mostRecent" },
   { value: "publishedAt", labelKey: "leastRecent" },
-] as const;
+];
 
 const RESULT_TYPE_OPTIONS = [
   { value: "videos", labelKey: "onlyVideos" },
   { value: "channels", labelKey: "onlyChannels" },
   { value: "playlists", labelKey: "onlyPlaylists" },
-] as const;
+];
 
 const PUBLISHED_DATE_OPTIONS = [
   { value: "any_published_date", labelKey: "anyDate" },
@@ -26,14 +26,14 @@ const PUBLISHED_DATE_OPTIONS = [
   { value: "last_7days", labelKey: "last7days" },
   { value: "last_30days", labelKey: "last30days" },
   { value: "last_365days", labelKey: "last365days" },
-] as const;
+];
 
 const DURATION_OPTIONS = [
   { value: "any_duration", labelKey: "anyDuration" },
   { value: "short", labelKey: "short" },
   { value: "medium", labelKey: "medium" },
   { value: "long", labelKey: "long" },
-] as const;
+];
 
 // Categories from SepiaSearch bundle (id: label)
 const CATEGORIES = [
@@ -66,7 +66,7 @@ const LICENCES = [
   { id: "5", key: "5" },
   { id: "6", key: "6" },
   { id: "7", key: "7" },
-] as const;
+];
 
 // Languages from SepiaSearch bundle (major ones)
 const LANGUAGES = [
@@ -99,7 +99,7 @@ const LANGUAGES = [
   { id: "tr", key: "tr" },
   { id: "uk", key: "uk" },
   { id: "zh", key: "zh" },
-] as const;
+];
 
 function Select({ label, value, options, onChange, t, className = "" }: {
   label: string;
@@ -119,7 +119,6 @@ function Select({ label, value, options, onChange, t, className = "" }: {
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
-            {/* @ts-expect-error: dynamic key from options array */}
             {t(opt.labelKey)}
           </option>
         ))}
@@ -150,8 +149,7 @@ function RadioGroup({ label, value, options, onChange, t, className = "" }: {
               onChange={() => onChange(opt.value)}
               className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-700">{/* @ts-expect-error: dynamic key from options array */}
-            {t(opt.labelKey)}</span>
+            <span className="text-sm text-gray-700">{t(opt.labelKey)}</span>
           </label>
         ))}
       </div>
@@ -376,7 +374,6 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
               <option value="any">{t("allCategories")}</option>
 {CATEGORIES.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {/* @ts-expect-error: dynamic key from categories namespace */}
                   {t(`categories.${cat.key}`)}
                 </option>
               ))}
@@ -401,7 +398,6 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
               <option value="any">{t("allLicences")}</option>
 {LICENCES.map((lic) => (
                 <option key={lic.id} value={lic.id}>
-                  {/* @ts-expect-error: dynamic key from licences namespace */}
                   {t(`licences.${lic.key}`)}
                 </option>
               ))}
@@ -426,7 +422,6 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
               <option value="any">{t("allLanguages")}</option>
 {LANGUAGES.map((lang) => (
                 <option key={lang.id} value={lang.id}>
-                  {/* @ts-expect-error: dynamic key from languages namespace */}
                   {t(`languages.${lang.key}`)}
                 </option>
               ))}

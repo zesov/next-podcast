@@ -1,7 +1,8 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useTranslations, useFormatter } from "next-intl";
-import type { PeerTubeVideo, PeerTubeFilters } from "@/app/types";
+import type { PeerTubeVideo } from "@/app/types";
+import type { PeerTubeFilters as PeerTubeFiltersType } from "@/app/types";
 import PeerTubeVideoCard from "./PeerTubeVideoCard";
 import PeerTubePlayer from "./PeerTubePlayer";
 import PeerTubeFilters from "./PeerTubeFilters";
@@ -11,7 +12,7 @@ interface Props {
   initialTotal?: number;
 }
 
-const DEFAULT_FILTERS: PeerTubeFilters = {
+const DEFAULT_FILTERS: PeerTubeFiltersType = {
   sort: "-match",
   nsfw: null,
   resultType: "videos",
@@ -26,7 +27,7 @@ const DEFAULT_FILTERS: PeerTubeFilters = {
   host: "",
 };
 
-function filtersToQueryParams(filters: Partial<PeerTubeFilters>): URLSearchParams {
+function filtersToQueryParams(filters: Partial<PeerTubeFiltersType>): URLSearchParams {
   const qs = new URLSearchParams();
   if (filters.sort) qs.set("sort", filters.sort);
   if (filters.nsfw !== null) qs.set("nsfw", String(filters.nsfw));
@@ -83,7 +84,7 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
   const [selected, setSelected] = useState<PeerTubeVideo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState<Partial<PeerTubeFilters>>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<Partial<PeerTubeFiltersType>>(DEFAULT_FILTERS);
 
   const runSearch = useCallback(async (query: string) => {
     setLoading(true);
@@ -106,7 +107,7 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
     }
   }, [filters, t]);
 
-  const handleApplyFilters = useCallback((newFilters: Partial<PeerTubeFilters>) => {
+  const handleApplyFilters = useCallback((newFilters: Partial<PeerTubeFiltersType>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
     runSearch(searchTerm.trim() || "");
   }, [runSearch, searchTerm]);
