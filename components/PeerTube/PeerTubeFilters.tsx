@@ -314,7 +314,7 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
           label="sensitiveContent"
           value={filters.nsfw === true ? "true" : filters.nsfw === false ? "false" : "all"}
           options={[
-            { value: "all", labelKey: "anyDuration" }, // reuse "Any"
+            { value: "all", labelKey: "anyDate" },
             { value: "true", labelKey: "yes" },
             { value: "false", labelKey: "no" },
           ]}
@@ -336,7 +336,7 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
           label="displayOnly"
           value={filters.isLive === true ? "live" : filters.isLive === false ? "vod" : "all"}
           options={[
-            { value: "all", labelKey: "anyDuration" },
+            { value: "all", labelKey: "anyDate" },
             { value: "live", labelKey: "liveVideos" },
             { value: "vod", labelKey: "vodVideos" },
           ]}
