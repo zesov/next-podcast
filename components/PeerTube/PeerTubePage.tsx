@@ -124,8 +124,12 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      runSearch(searchTerm.trim());
+      runSearch(searchTerm.trim(), filters);
     }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
   };
 
   return (
@@ -139,17 +143,31 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
 
       {/* 搜索框 */}
       <div className="mb-6 flex gap-2 max-w-2xl">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={t("searchPlaceholder")}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-        />
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t("searchPlaceholder")}
+            className="flex-1 px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label={t("clearSearch")}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
         <button
           type="button"
-          onClick={() => runSearch(searchTerm.trim())}
+          onClick={() => runSearch(searchTerm.trim(), filters)}
           disabled={loading}
           className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium disabled:opacity-50"
         >

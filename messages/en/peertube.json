@@ -6,6 +6,7 @@
     "search": "Search",
     "searching": "Searching…",
     "close": "Close",
+    "clearSearch": "Clear search",
     "resultCount": "{count} results",
     "emptyResult": "No results for “{query}”. Try another keyword.",
     "initialEmpty": "No videos to show. Try a search above.",

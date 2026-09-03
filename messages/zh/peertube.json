@@ -6,6 +6,7 @@
     "search": "搜索",
     "searching": "搜索中…",
     "close": "关闭",
+    "clearSearch": "清空搜索",
     "resultCount": "{count} 个结果",
     "emptyResult": "未找到“{query}”的相关结果，换个关键词试试。",
     "initialEmpty": "暂无视频，试试在上方搜索。",
