@@ -4,7 +4,7 @@
 A **podcast web player** (Next.js 15 App Router) that surfaces Hong Kong / RTHK podcasts from the [Podcast Index](https://podcastindex.org) API. Not generated with a formal design system — hand-rolled Tailwind utility components.
 
 ## Commands
-- `npm run dev` / `npm run build` — run under **Turbopack** (script includes `--turbopack`)
+- `bun dev` / `npm run build` — run under **Turbopack** (script includes `--turbopack`)
 - `npm run lint` — ESLint (next/core-web-vitals + next/typescript). This is the **only** verification; there is **no test suite and no `typecheck` script**. Run `npm run build` to typecheck.
 - Package manager is mixed: both `bun.lock` and `package-lock.json` are committed. Use `bun` for installs, but don't remove either lockfile.
 
@@ -38,6 +38,7 @@ Playback state is shared via the `EpisodeContext` (`useEpisode` hook), which wra
 ## Important
 - 使用frontend-design skills
 - omo Delegated tasks任务分配10秒超时无反应后，用主agent直接执行
+- TDD开发模式优先
 
 ### browse playwright
 - 直接使用bash命令 uvx playwright  

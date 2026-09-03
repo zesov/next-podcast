@@ -3,9 +3,22 @@
     "brand": "播客",
     "browse": "浏览",
     "live": "直播",
+    "peertube": "PeerTube",
     "ranking": "排行榜",
     "categories": "分类",
     "searchPlaceholder": "搜索播客、单集或创作者"
+  },
+  "peertube": {
+    "title": "PeerTube 视频",
+    "subtitle": "汇聚自 SepiaSearch 索引的 PeerTube 视频，直接在此播放。",
+    "searchPlaceholder": "搜索 PeerTube 视频…",
+    "search": "搜索",
+    "searching": "搜索中…",
+    "close": "关闭",
+    "resultCount": "{count} 个结果",
+    "emptyResult": "未找到“{query}”的相关结果，换个关键词试试。",
+    "initialEmpty": "暂无视频，试试在上方搜索。",
+    "searchError": "获取 PeerTube 视频失败，请重试。"
   },
   "footer": {
     "explore": "探索",
