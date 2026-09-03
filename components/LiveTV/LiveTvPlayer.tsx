@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type Hls from 'hls.js';
 import { LiveChannel } from './liveChannels';
+import { usePlaybackTracking } from '@/hooks/usePlaybackTracking';
 
 // 直播播放器（HLS 视频/音频）
 // Safari 原生支持 HLS；其他浏览器使用 hls.js（动态导入避免 SSR window 报错）。
@@ -25,8 +26,16 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
+  const hasStartedRef = useRef(false);
 
   const playableUrl = channel && isHttpUrl(channel.streamUrl) ? channel.streamUrl : null;
+
+  const { startTracking, stopTracking, heartbeat } = usePlaybackTracking({
+    contentType: 'live',
+    contentId: channel?.id || '',
+    contentTitle: channel?.name,
+    enabled: !!channel && !!playableUrl,
+  });
 
   // 切换频道时重建播放器
   useEffect(() => {
@@ -69,6 +78,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
 
     setIsPlaying(false);
     setIsSupported(true);
+    hasStartedRef.current = false;
 
     return () => {
       destroyed = true;
@@ -80,15 +90,66 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
   }, [channel]);
 
   // 播放 / 暂停
-  const togglePlay = () => {
+  const togglePlay = async () => {
     const media = mediaRef.current;
     if (!media) return;
     if (media.paused) {
+      if (!hasStartedRef.current) {
+        hasStartedRef.current = true;
+        await startTracking({ title: channel?.name });
+      }
       media.play().catch(() => setIsPlaying(false));
     } else {
       media.pause();
     }
   };
+
+  // 心跳定时器
+  const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 监听播放状态变化以管理心跳
+  useEffect(() => {
+    const media = mediaRef.current;
+    if (!media) return;
+
+    const handlePlay = () => {
+      if (heartbeatIntervalRef.current) return;
+      heartbeatIntervalRef.current = setInterval(() => {
+        if (!media.paused && !media.ended) {
+          heartbeat(media.currentTime);
+        }
+      }, 30000);
+    };
+
+    const handlePause = () => {
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+    };
+
+    const handleEnded = async () => {
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+      await stopTracking(media.currentTime);
+      hasStartedRef.current = false;
+    };
+
+    media.addEventListener('play', handlePlay);
+    media.addEventListener('pause', handlePause);
+    media.addEventListener('ended', handleEnded);
+
+    return () => {
+      media.removeEventListener('play', handlePlay);
+      media.removeEventListener('pause', handlePause);
+      media.removeEventListener('ended', handleEnded);
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+      }
+    };
+  }, [heartbeat, stopTracking, channel?.id]);
 
   // 静音
   const toggleMute = () => {

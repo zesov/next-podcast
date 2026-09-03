@@ -10,6 +10,7 @@
     "db:seed": "node scripts/seedLiveChannels.ts"
   },
   "dependencies": {
+    "@deno/kv": "^0.14.0",
     "hls.js": "^1.7.1",
     "lucide-react": "^1.39.0",
     "next": "16.1.6",
