@@ -115,6 +115,7 @@
     "nonHttpStream": "该频道流地址无法在浏览器直接播放",
     "loading": "加载中…",
     "scrollMore": "下滑加载更多",
-    "allLoaded": "已加载全部频道"
+    "allLoaded": "已加载全部频道",
+    "nextUp": "下一个节目"
   }
 }

@@ -115,6 +115,7 @@
     "nonHttpStream": "This channel stream URL cannot be played directly in the browser",
     "loading": "Loading…",
     "scrollMore": "Scroll for more",
-    "allLoaded": "All channels loaded"
+    "allLoaded": "All channels loaded",
+    "nextUp": "Next Up"
   }
 }

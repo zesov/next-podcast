@@ -9,6 +9,8 @@ import { LiveChannel } from './liveChannels';
 // 部分频道地址为 bally:// 等自定义协议或短链，浏览器无法直接播放，需解析后才能播。
 interface LiveTvPlayerProps {
   channel: LiveChannel | null;
+  className?: string;
+  overlay?: React.ReactNode; // 叠加在视频上的元数据（Plex hero 风格：频道 logo + 当前节目）
 }
 
 // 是否为可由 <video>/hls.js 直接播放的 http(s) 地址
@@ -16,7 +18,7 @@ function isHttpUrl(url: string): boolean {
   return /^https?:\/\//i.test(url);
 }
 
-export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
+export default function LiveTvPlayer({ channel, className = '', overlay }: LiveTvPlayerProps) {
   const t = useTranslations('live');
   const mediaRef = useRef<HTMLMediaElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -117,7 +119,7 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
   }
 
   return (
-    <div className="live-player-container bg-gray-900 rounded-xl overflow-hidden">
+    <div className={`live-player-container bg-gray-900 rounded-xl overflow-hidden ${className}`}>
       <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
         <div className="flex items-center space-x-2">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
@@ -130,14 +132,17 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
       </div>
 
       {channel.type === 'video' ? (
-        <video
-          ref={mediaRef as React.RefObject<HTMLVideoElement>}
-          className="w-full aspect-video bg-black"
-          controls={false}
-          playsInline
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        />
+        <div className="relative">
+          <video
+            ref={mediaRef as React.RefObject<HTMLVideoElement>}
+            className="w-full aspect-video bg-black"
+            controls={false}
+            playsInline
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+          />
+          {overlay && <div className="absolute inset-0 pointer-events-none">{overlay}</div>}
+        </div>
       ) : (
         <div className="w-full aspect-video bg-black flex items-center justify-center">
           <audio
@@ -165,7 +170,7 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
           className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={isPlaying ? t("pause") : t("play")}
         >
-          <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play'}`}></i>
+          {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
         </button>
         <button
           onClick={toggleMute}
@@ -173,7 +178,7 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
           className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={isMuted ? t("unmute") : t("mute")}
         >
-          <i className={`fas ${isMuted ? 'fa-volume-mute' : 'fa-volume-up'}`}></i>
+          {isMuted ? <MuteIcon className="w-5 h-5" /> : <VolumeIcon className="w-5 h-5" />}
         </button>
         <button
           onClick={toggleFullscreen}
@@ -181,9 +186,50 @@ export default function LiveTvPlayer({ channel }: LiveTvPlayerProps) {
           className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={t("fullscreen")}
         >
-          <i className="fas fa-expand"></i>
+          <FullscreenIcon className="w-5 h-5" />
         </button>
       </div>
     </div>
+  );
+}
+
+// 内联 SVG 图标（不依赖外部 FontAwesome CDN，避免加载失败导致按钮只有颜色无图标）
+function PlayIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function PauseIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+    </svg>
+  );
+}
+
+function VolumeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
+    </svg>
+  );
+}
+
+function MuteIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M16.5 12a4.5 4.5 0 0 0-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.9 8.9 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+    </svg>
+  );
+}
+
+function FullscreenIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+    </svg>
   );
 }

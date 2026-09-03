@@ -139,6 +139,59 @@ export async function getProgramsForChannel(
   }));
 }
 
+// 批量读取多个频道的节目表（EPG）：一次查询返回 channelId -> EpgSlot[]。
+// 用于节目单网格（grid guide）—— 每个频道行需展示各自的横向节目条。
+// 每频道限制条数，避免一次拉取过多导致响应过大。
+export async function getProgramsForChannels(
+  channelIds: number[],
+  perChannelLimit = 8
+): Promise<Map<number, EpgSlot[]>> {
+  const database = getDb();
+  if (channelIds.length === 0) return new Map();
+
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+
+  const placeholders = channelIds.map(() => '?').join(',');
+  // 为每频道取前 perChannelLimit 条：利用 ROW_NUMBER 窗口函数按 start_time 排序截取。
+  const rows = database
+    .prepare(
+      `SELECT * FROM (
+         SELECT channel_id, title, description, start_time, end_time, is_live,
+                ROW_NUMBER() OVER (
+                  PARTITION BY channel_id
+                  ORDER BY start_time ASC
+                ) AS rn
+         FROM programs
+         WHERE channel_id IN (${placeholders}) AND end_time >= ?
+       )
+       WHERE rn <= ?`
+    )
+    .all(...channelIds, dayStart.toISOString(), perChannelLimit) as Array<{
+    channel_id: number;
+    title: string;
+    description: string | null;
+    start_time: string;
+    end_time: string;
+    is_live: number | null;
+  }>;
+
+  const result = new Map<number, EpgSlot[]>();
+  for (const p of rows) {
+    const slot: EpgSlot = {
+      start: new Date(p.start_time).getTime(),
+      end: new Date(p.end_time).getTime(),
+      title: p.title,
+      description: p.description || '',
+      isLive: p.is_live === 1,
+    };
+    const arr = result.get(p.channel_id);
+    if (arr) arr.push(slot);
+    else result.set(p.channel_id, [slot]);
+  }
+  return result;
+}
+
 // 返回频道分类列表（含各分类频道数），供分类导航展示。
 export async function getCategoriesWithCount(): Promise<
   Array<{ category: string; count: number }>
