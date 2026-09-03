@@ -86,11 +86,11 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
   const [error, setError] = useState("");
   const [filters, setFilters] = useState<Partial<PeerTubeFiltersType>>(DEFAULT_FILTERS);
 
-  const runSearch = useCallback(async (query: string) => {
+  const runSearch = useCallback(async (query: string, currentFilters?: Partial<PeerTubeFiltersType>) => {
     setLoading(true);
     setError("");
     try {
-      const filterParams = filtersToQueryParams(filters);
+      const filterParams = filtersToQueryParams(currentFilters ?? filters);
       const baseUrl = `/api/peertube?search=${encodeURIComponent(query)}&start=0&count=12`;
       const fullUrl = `${baseUrl}&${filterParams.toString()}`;
 
@@ -108,8 +108,11 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
   }, [filters, t]);
 
   const handleApplyFilters = useCallback((newFilters: Partial<PeerTubeFiltersType>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-    runSearch(searchTerm.trim() || "");
+    setFilters((prev) => {
+      const merged = { ...prev, ...newFilters };
+      runSearch(searchTerm.trim() || "", merged);
+      return merged;
+    });
   }, [runSearch, searchTerm]);
 
   const handleSelect = (video: PeerTubeVideo) => {
