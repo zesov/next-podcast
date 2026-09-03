@@ -55,10 +55,30 @@ export async function GET(request: NextRequest) {
       start: String(start),
       count: String(count),
       searchTarget: "search-index",
-      sort: "-match",
+      sort: searchParams.get("sort") || "-match",
     });
     if (rawSearch) {
       qs.set("search", rawSearch);
+    }
+
+    // 转发可选的筛选参数（与 PeerTube/SepiaSearch 搜索过滤器一一对应）
+    const filterParams = [
+      "nsfw",
+      "isLive",
+      "durationMin",
+      "durationMax",
+      "startDate",
+      "endDate",
+      "categoryOneOf",
+      "licenceOneOf",
+      "languageOneOf",
+      "tagsAllOf",
+      "tagsOneOf",
+      "host",
+    ];
+    for (const key of filterParams) {
+      const value = searchParams.get(key);
+      if (value) qs.set(key, value);
     }
 
     const res = await fetch(`${SEPIA_BASE}?${qs.toString()}`, {
