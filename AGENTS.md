@@ -39,6 +39,7 @@ Playback state is shared via the `EpisodeContext` (`useEpisode` hook), which wra
 - 使用frontend-design skills
 - omo Delegated tasks任务分配10秒超时无反应后，用主agent直接执行
 - TDD开发模式优先
+- git commit 要由user明确提出先commit
 
 ### browse playwright
 - 直接使用bash命令 uvx playwright  

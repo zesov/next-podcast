@@ -6,6 +6,7 @@ import type { PeerTubeFilters as PeerTubeFiltersType } from "@/app/types";
 import PeerTubeVideoCard from "./PeerTubeVideoCard";
 import PeerTubePlayer from "./PeerTubePlayer";
 import PeerTubeFilters from "./PeerTubeFilters";
+import { X } from "lucide-react";
 
 interface Props {
   initialVideos: PeerTubeVideo[];
@@ -159,9 +160,7 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               aria-label={t("clearSearch")}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
