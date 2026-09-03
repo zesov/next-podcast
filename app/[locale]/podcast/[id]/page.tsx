@@ -1,5 +1,5 @@
 import { EpisodeProvider } from '@/app/contexts/EpisodeContext';
-import EpisodePage from '@/components/EpisodeFeed';
+import EpisodePage from '@/components/Podcast/EpisodeFeed';
 import Navbar  from '@/components/Navbar';
 import { setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';

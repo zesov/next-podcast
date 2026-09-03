@@ -1,13 +1,13 @@
 'use client';
 import Head from 'next/head'
 import Navbar from './Navbar'
-import FeaturedSection from './FeaturedSection'
-import CategorySection from './CategorySection'
-import TopPodcasts from './TopPodcasts'
-import TopEpisodes from './TopEpisodes'
+import FeaturedSection from './Podcast/FeaturedSection'
+import CategorySection from './Podcast/CategorySection'
+import TopPodcasts from './Podcast/TopPodcasts'
+import TopEpisodes from './Podcast/TopEpisodes'
 import Player from './Player'
-import Recommended from './Recommended'
-import Categories from './Categories'
+import Recommended from './Podcast/Recommended'
+import Categories from './Podcast/Categories'
 import Footer from './Footer'
 
 export default function Index({feeds,topPodcasts,recentEpisodes,episodesRandom,categories}: any) {

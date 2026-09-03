@@ -1,14 +1,14 @@
 'use client';
 import Head from 'next/head'
-import Navbar from './Navbar'
+import Navbar from '../Navbar'
 import FeaturedSection from './FeaturedSection'
 import CategorySection from './CategorySection'
 import TopPodcasts from './TopPodcasts'
 import TopEpisodes from './TopEpisodes'
-import Player from './Player'
+import Player from '../Player'
 import Recommended from './Recommended'
 import Categories from './Categories'
-import Footer from './Footer'
+import Footer from '../Footer'
 
 export default function PodcastPage({feeds,topPodcasts,recentEpisodes,episodesRandom,categories}: any) {
 

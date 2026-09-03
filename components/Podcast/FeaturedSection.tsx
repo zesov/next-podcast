@@ -1,6 +1,6 @@
 'use client'; 
-import {FeaturedItem} from '../app/types';
-import { useEpisode } from '../app/contexts/EpisodeContext';
+import {FeaturedItem} from '../../app/types';
+import { useEpisode } from '../../app/contexts/EpisodeContext';
 import { useTranslations } from 'next-intl';
 import FeaturedCarousel from './FeaturedCarousel';
 

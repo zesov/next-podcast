@@ -1,10 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { Episode } from "../app/types";
-import { useEpisode } from '../app/contexts/EpisodeContext';
+import { Episode } from "../../app/types";
+import { useEpisode } from '../../app/contexts/EpisodeContext';
 import { useTranslations } from 'next-intl';
-import Player from './Player';
+import Player from '../Player';
 import { useRouter } from 'next/navigation';
 
 interface Podcast {

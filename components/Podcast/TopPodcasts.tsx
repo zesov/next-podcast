@@ -1,6 +1,6 @@
 'use client';
-import {TopPodcast} from "../app/types";
-import { useEpisode } from '../app/contexts/EpisodeContext';
+import {TopPodcast} from "../../app/types";
+import { useEpisode } from '../../app/contexts/EpisodeContext';
 import { useTranslations } from 'next-intl';
 // import React from 'react';
 

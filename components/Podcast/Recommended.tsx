@@ -1,5 +1,5 @@
 'use client';
-import { useEpisode } from '../app/contexts/EpisodeContext';
+import { useEpisode } from '../../app/contexts/EpisodeContext';
 import { useTranslations } from 'next-intl';
 import React, { useState, useRef, useEffect } from 'react';
 

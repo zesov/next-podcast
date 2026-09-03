@@ -2,7 +2,7 @@ import { EpisodeProvider } from '@/app/contexts/EpisodeContext';
 import {client} from '@/app/api/db';
 import Navbar  from '@/components/Navbar';
 import { TopPodcast } from '@/app/types';
-import PodcastPage from '@/components/Podcast';
+import PodcastPage from '@/components/Podcast/Podcast';
 import { setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 
