@@ -5,7 +5,7 @@ import type { PeerTubeVideo } from "@/app/types";
 import type { PeerTubeFilters as PeerTubeFiltersType } from "@/app/types";
 import PeerTubeVideoCard from "./PeerTubeVideoCard";
 import PeerTubePlayer from "./PeerTubePlayer";
-import PeerTubeFilters from "./PeerTubeFilters";
+import PeerTubeFilters, { PeerTubeFiltersRef } from "./PeerTubeFilters";
 import { X, Search, SlidersHorizontal } from "lucide-react";
 
 interface Props {
@@ -85,14 +85,20 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
   const [selected, setSelected] = useState<PeerTubeVideo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState<Partial<PeerTubeFiltersType>>(DEFAULT_FILTERS);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchBtnRef = useRef<HTMLButtonElement>(null);
+  const filtersRef = useRef<PeerTubeFiltersRef>(null);
 
   // Click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(target);
+      const isOutsideSearchInput = searchInputRef.current && !searchInputRef.current.contains(target);
+      const isOutsideSearchBtn = searchBtnRef.current && !searchBtnRef.current.contains(target);
+      if (isOutsideDropdown && isOutsideSearchInput && isOutsideSearchBtn) {
         setIsFiltersOpen(false);
       }
     };
@@ -102,11 +108,16 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isFiltersOpen]);
 
-  const runSearch = useCallback(async (query: string, currentFilters?: Partial<PeerTubeFiltersType>) => {
+  const getCurrentFilters = useCallback((): Partial<PeerTubeFiltersType> => {
+    return filtersRef.current?.getFilters() ?? DEFAULT_FILTERS;
+  }, []);
+
+  const runSearch = useCallback(async (query: string) => {
     setLoading(true);
     setError("");
     try {
-      const filterParams = filtersToQueryParams(currentFilters ?? filters);
+      const currentFilters = getCurrentFilters();
+      const filterParams = filtersToQueryParams(currentFilters);
       const baseUrl = `/api/peertube?search=${encodeURIComponent(query)}&start=0&count=12`;
       const fullUrl = `${baseUrl}&${filterParams.toString()}`;
 
@@ -121,15 +132,7 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
     } finally {
       setLoading(false);
     }
-  }, [filters, t]);
-
-  const handleApplyFilters = useCallback((newFilters: Partial<PeerTubeFiltersType>) => {
-    setFilters((prev) => {
-      const merged = { ...prev, ...newFilters };
-      runSearch(searchTerm.trim() || "", merged);
-      return merged;
-    });
-  }, [runSearch, searchTerm]);
+  }, [getCurrentFilters, t]);
 
   const handleSelect = (video: PeerTubeVideo) => {
     setSelected(video);
@@ -140,33 +143,13 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      runSearch(searchTerm.trim(), filters);
+      runSearch(searchTerm.trim());
     }
   };
 
-  const handleClearSearch = () => {
-    setSearchTerm("");
+  const handleSearchClick = () => {
+    runSearch(searchTerm.trim());
   };
-
-  const handleReset = useCallback(() => {
-    const defaults: Partial<PeerTubeFiltersType> = {
-      sort: "-match",
-      nsfw: null,
-      resultType: "videos",
-      isLive: null,
-      publishedDateRange: "any_published_date",
-      durationRange: "any_duration",
-      categoryOneOf: "",
-      licenceOneOf: "",
-      languageOneOf: "",
-      tagsAllOf: [],
-      tagsOneOf: [],
-      host: "",
-    };
-    setFilters(defaults);
-    setIsFiltersOpen(false);
-    runSearch(searchTerm.trim() || "", defaults);
-  }, [runSearch, searchTerm]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -184,6 +167,7 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
           <label className="relative flex h-10 flex-1 items-center gap-2 rounded-l-full border border-gray-300 bg-white px-4">
             <Search aria-hidden="true" className="size-4 shrink-0 text-gray-400" />
             <input
+              ref={searchInputRef}
               type="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -193,31 +177,12 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
               placeholder={t("searchPlaceholder")}
               className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
             />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={handleClearSearch}
-                className="text-gray-400 hover:text-gray-600"
-                aria-label={t("clearSearch")}
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
           </label>
-          {/* Filter button - middle of pill */}
-          <button
-            type="button"
-            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-            className="flex h-10 items-center gap-2 border-y border-gray-300 bg-white px-4 hover:bg-gray-50 text-gray-700 transition"
-            aria-label={t("filters.title")}
-            aria-expanded={isFiltersOpen}
-          >
-            <SlidersHorizontal className="w-5 h-5" />
-          </button>
           {/* Search button - pill right side */}
           <button
+            ref={searchBtnRef}
             type="button"
-            onClick={() => runSearch(searchTerm.trim(), filters)}
+            onClick={handleSearchClick}
             disabled={loading}
             className="flex h-10 items-center gap-2 rounded-r-full border border-indigo-600 bg-indigo-600 px-5 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
           >
@@ -231,19 +196,9 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
             ref={dropdownRef}
             className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg p-3 max-h-96 overflow-y-auto"
           >
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-medium text-gray-900">{t("filters.title")}</h2>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-xs text-indigo-600 hover:text-indigo-800"
-              >
-                {t("filters.reset")}
-              </button>
-            </div>
             <PeerTubeFilters
-              initialFilters={filters}
-              onApply={handleApplyFilters}
+              ref={filtersRef}
+              initialFilters={DEFAULT_FILTERS}
             />
           </div>
         )}
@@ -286,18 +241,8 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
         </div>
       )}
 
-      {/* 主内容区：左侧筛选器 + 右侧视频网格 */}
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* 左侧筛选器面板 */}
-        <aside className="w-full lg:w-72 flex-shrink-0 hidden">
-          <PeerTubeFilters
-            initialFilters={filters}
-            onApply={handleApplyFilters}
-          />
-        </aside>
-
-        {/* 右侧视频网格 */}
-        <main className="flex-1 min-w-0">
+      {/* 主内容区：视频网格 */}
+      <main className="flex-1 min-w-0">
           {videos.length > 0 && (
             <>
               <div className="mb-4 text-sm text-gray-500">
@@ -326,7 +271,6 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0 }: Props)
             </div>
           )}
         </main>
-      </div>
     </div>
   );
 }

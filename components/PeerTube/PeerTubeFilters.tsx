@@ -1,11 +1,15 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useTranslations } from "next-intl";
 import type { PeerTubeFilters } from "@/app/types";
 
+export interface PeerTubeFiltersRef {
+  getFilters: () => Partial<PeerTubeFilters>;
+  reset: () => void;
+}
+
 interface Props {
   initialFilters?: Partial<PeerTubeFilters>;
-  onApply: (filters: Partial<PeerTubeFilters>) => void;
 }
 
 const SORT_OPTIONS = [
@@ -239,7 +243,7 @@ function TextInput({ label, value, onChange, placeholder, t, className = "" }: {
   );
 }
 
-export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props) {
+export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ initialFilters = {} }, ref) {
   const t = useTranslations("peertube.filters");
 
   // Initialize filter state from initialFilters or defaults
@@ -263,10 +267,6 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
     setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const handleApply = useCallback(() => {
-    onApply(filters);
-  }, [filters, onApply]);
-
   const handleReset = useCallback(() => {
     const defaults: Partial<PeerTubeFilters> = {
       sort: "-match",
@@ -283,11 +283,17 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
       host: "",
     };
     setFilters(defaults);
-    onApply(defaults);
-  }, [onApply]);
+  }, []);
+
+  const getFilters = useCallback(() => filters, [filters]);
+
+  useImperativeHandle(ref, () => ({
+    getFilters,
+    reset: handleReset,
+  }));
 
   return (
-    <aside className="w-full lg:w-72 flex-shrink-0 p-4 bg-gray-50 rounded-xl border border-gray-200">
+    <div className="w-full p-4 bg-white rounded-xl border border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900">{t("title")}</h2>
         <button
@@ -299,7 +305,7 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Sort by */}
         <Select
           label="sortBy"
@@ -372,7 +378,7 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 appearance-none"
             >
               <option value="any">{t("allCategories")}</option>
-{CATEGORIES.map((cat) => (
+              {CATEGORIES.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {t(`categories.${cat.key}`)}
                 </option>
@@ -396,7 +402,7 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 appearance-none"
             >
               <option value="any">{t("allLicences")}</option>
-{LICENCES.map((lic) => (
+              {LICENCES.map((lic) => (
                 <option key={lic.id} value={lic.id}>
                   {t(`licences.${lic.key}`)}
                 </option>
@@ -420,7 +426,7 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 appearance-none"
             >
               <option value="any">{t("allLanguages")}</option>
-{LANGUAGES.map((lang) => (
+              {LANGUAGES.map((lang) => (
                 <option key={lang.id} value={lang.id}>
                   {t(`languages.${lang.key}`)}
                 </option>
@@ -460,16 +466,7 @@ export default function PeerTubeFilters({ initialFilters = {}, onApply }: Props)
           placeholder={t("instancePlaceholder")}
           t={t}
         />
-
-        {/* Apply button */}
-        <button
-          type="button"
-          onClick={handleApply}
-          className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition"
-        >
-          {t("apply")}
-        </button>
       </div>
-    </aside>
+    </div>
   );
-}
+});
