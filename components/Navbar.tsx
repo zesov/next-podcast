@@ -1,8 +1,59 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
-import { Search, Podcast } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Search, Podcast, X } from 'lucide-react';
+import PeerTubeFiltersComp, { PeerTubeFiltersRef } from '@/components/PeerTube/PeerTubeFilters';
+import type { PeerTubeFilters } from '@/app/types';
+
+function PeertubeSearchFilters({ isPeertubePage, isPeertubeFiltersOpen, setIsPeertubeFiltersOpen, peertubeFiltersRef, dropdownRef, searchInputRef }: {
+  isPeertubePage: boolean;
+  isPeertubeFiltersOpen: boolean;
+  setIsPeertubeFiltersOpen: (open: boolean) => void;
+  peertubeFiltersRef: React.RefObject<PeerTubeFiltersRef | null>;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  searchInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const searchParams = useSearchParams();
+  
+  if (!isPeertubePage || !isPeertubeFiltersOpen) return null;
+  
+  return (
+    <div
+      ref={dropdownRef}
+      className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg p-3 max-h-96 overflow-y-auto"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-900">Filters</span>
+        <button
+          type="button"
+          onClick={() => setIsPeertubeFiltersOpen(false)}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <PeerTubeFiltersComp
+        ref={peertubeFiltersRef}
+        initialFilters={{
+          sort: (searchParams.get('sort') as PeerTubeFilters["sort"]) || '-match',
+          nsfw: searchParams.get('nsfw') ? searchParams.get('nsfw') === 'true' : null,
+          resultType: (searchParams.get('resultType') as PeerTubeFilters["resultType"]) || 'videos',
+          isLive: searchParams.get('isLive') ? searchParams.get('isLive') === 'true' : null,
+          publishedDateRange: (searchParams.get('publishedDateRange') as PeerTubeFilters["publishedDateRange"]) || 'any_published_date',
+          durationRange: (searchParams.get('durationRange') as PeerTubeFilters["durationRange"]) || 'any_duration',
+          categoryOneOf: searchParams.get('categoryOneOf') || '',
+          licenceOneOf: searchParams.get('licenceOneOf') || '',
+          languageOneOf: searchParams.get('languageOneOf') || '',
+          tagsAllOf: searchParams.get('tagsAllOf') ? searchParams.get('tagsAllOf')!.split(',') : [],
+          tagsOneOf: searchParams.get('tagsOneOf') ? searchParams.get('tagsOneOf')!.split(',') : [],
+          host: searchParams.get('host') || '',
+        }}
+      />
+    </div>
+  );
+}
 
 export default function Navbar() {
   const t = useTranslations('navbar');
@@ -11,6 +62,27 @@ export default function Navbar() {
   const router = useRouter();
 
   const isLivePage = pathname?.startsWith('/live');
+  const isPeertubePage = pathname?.startsWith('/peertube');
+  const [isPeertubeFiltersOpen, setIsPeertubeFiltersOpen] = useState(false);
+  const peertubeFiltersRef = useRef<PeerTubeFiltersRef | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Click outside to close peertube filters dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(target);
+      const isOutsideSearchInput = searchInputRef.current && !searchInputRef.current.contains(target);
+      if (isOutsideDropdown && isOutsideSearchInput) {
+        setIsPeertubeFiltersOpen(false);
+      }
+    };
+    if (isPeertubeFiltersOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isPeertubeFiltersOpen]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
@@ -18,10 +90,42 @@ export default function Navbar() {
       if (searchTerm.trim()) {
         if (isLivePage) {
           router.push(`/live?search=${encodeURIComponent(searchTerm.trim())}`);
+        } else if (isPeertubePage) {
+          const currentFilters = peertubeFiltersRef.current?.getFilters() ?? {};
+          const filterParams = new URLSearchParams();
+          Object.entries(currentFilters).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+              if (Array.isArray(value)) {
+                filterParams.set(key, value.join(','));
+              } else {
+                filterParams.set(key, String(value));
+              }
+            }
+          });
+          const queryString = filterParams.toString();
+          router.push(`/peertube?search=${encodeURIComponent(searchTerm.trim())}${queryString ? `&${queryString}` : ''}`);
         } else {
           router.push(`/podcast/?tag=${encodeURIComponent(searchTerm.trim())}`);
         }
       }
+    }
+  };
+
+  const handlePeertubeSearchClick = () => {
+    if (searchTerm.trim() || (peertubeFiltersRef.current && Object.keys(peertubeFiltersRef.current.getFilters()).length > 0)) {
+      const currentFilters = peertubeFiltersRef.current?.getFilters() ?? {};
+      const filterParams = new URLSearchParams();
+      Object.entries(currentFilters).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+          if (Array.isArray(value)) {
+            filterParams.set(key, value.join(','));
+          } else {
+            filterParams.set(key, String(value));
+          }
+        }
+      });
+      const queryString = filterParams.toString();
+      router.push(`/peertube?search=${encodeURIComponent(searchTerm.trim())}${queryString ? `&${queryString}` : ''}`);
     }
   };
 
@@ -53,14 +157,36 @@ export default function Navbar() {
                 <Search className="h-4 w-4 text-gray-400" aria-hidden="true" />
               </div>
               <input
+                ref={searchInputRef}
                 type="text"
                 className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 sm:text-sm"
-                placeholder={isLivePage ? t('liveSearchPlaceholder') : t('searchPlaceholder')}
+                placeholder={
+                  isLivePage
+                    ? t('liveSearchPlaceholder')
+                    : isPeertubePage
+                    ? 'Search PeerTube videos…'
+                    : t('searchPlaceholder')
+                }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onFocus={() => isPeertubePage && setIsPeertubeFiltersOpen(true)}
+                onClick={() => isPeertubePage && setIsPeertubeFiltersOpen(true)}
               />
             </div>
+
+            {/* Peertube Filters Dropdown - wrapped in Suspense for useSearchParams */}
+            <Suspense fallback={null}>
+              <PeertubeSearchFilters
+                isPeertubePage={isPeertubePage}
+                isPeertubeFiltersOpen={isPeertubeFiltersOpen}
+                setIsPeertubeFiltersOpen={setIsPeertubeFiltersOpen}
+                peertubeFiltersRef={peertubeFiltersRef}
+                dropdownRef={dropdownRef}
+                searchInputRef={searchInputRef}
+              />
+            </Suspense>
+
             {/* 语言切换 */}
             <div className="flex items-center space-x-1 text-sm font-medium">
               <button
