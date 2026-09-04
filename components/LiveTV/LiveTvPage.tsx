@@ -12,11 +12,12 @@ interface CategoryMeta {
 
 interface LiveTvPageProps {
   categories: CategoryMeta[];
+  searchTerm?: string;
 }
 
 const PAGE_SIZE = 48;
 
-export default function LiveTvPage({ categories }: LiveTvPageProps) {
+export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) {
   const t = useTranslations('live');
 
   const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
@@ -49,6 +50,7 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
       try {
         const params = new URLSearchParams({ offset: String(offset), limit: String(PAGE_SIZE) });
         if (category !== 'all') params.set('category', category);
+        if (searchTerm) params.set('search', searchTerm);
         const res = await fetch(`/api/liveChannels?${params.toString()}`);
         if (!res.ok) throw new Error('fetch failed');
         const data = (await res.json()) as {
@@ -65,7 +67,7 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
         if (seq === requestSeqRef.current) setLoading(false);
       }
     },
-    []
+    [searchTerm]
   );
 
   // 首屏/分类切换：重置分页，加载第一页

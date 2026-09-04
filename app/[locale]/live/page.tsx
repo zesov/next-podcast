@@ -6,6 +6,7 @@ import { routing } from '@/i18n/routing';
 
 interface Props {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ search?: string }>;
 }
 
 // 电视直播页面（路由 /{locale}/live）—— 服务端外壳：只读取分类元数据（轻量），
@@ -17,14 +18,15 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-export default async function LivePage({ params }: Props) {
+export default async function LivePage({ params, searchParams }: Props) {
   const { locale } = await params;
+  const { search } = await searchParams;
   setRequestLocale(locale);
   const categories = await getCategoriesWithCount();
   return (
     <>
       <Navbar />
-      <LiveTvPage categories={categories} />
+      <LiveTvPage categories={categories} searchTerm={search} />
     </>
   );
 }

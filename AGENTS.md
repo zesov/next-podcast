@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## What this is
-A **podcast web player** (Next.js 15 App Router) that surfaces Hong Kong / RTHK podcasts from the [Podcast Index](https://podcastindex.org) API. Not generated with a formal design system — hand-rolled Tailwind utility components.
+A **podcast web player** (Next.js 16 App Router) that surfaces Hong Kong / RTHK podcasts from the [Podcast Index](https://podcastindex.org) API. Not generated with a formal design system — hand-rolled Tailwind utility components.
 
 ## Commands
 - `bun dev` / `npm run build` — run under **Turbopack** (script includes `--turbopack`)

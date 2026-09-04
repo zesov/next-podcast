@@ -6,7 +6,8 @@
     "peertube": "PeerTube",
     "ranking": "Rankings",
     "categories": "Categories",
-    "searchPlaceholder": "Search podcasts, episodes or creators"
+    "searchPlaceholder": "Search podcasts, episodes or creators",
+    "liveSearchPlaceholder": "Search live channels by name, category..."
   },
   "footer": {
     "explore": "Explore",

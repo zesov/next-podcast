@@ -192,6 +192,44 @@ export async function getProgramsForChannels(
   return result;
 }
 
+// 搜索频道：按名称、分类、描述、语言、国家模糊匹配
+export async function searchLiveChannels(
+  query: string,
+  options: { offset?: number; limit?: number } = {}
+): Promise<{ channels: LiveChannel[]; total: number; hasMore: boolean }> {
+  const database = getDb();
+  const { offset = 0, limit = PAGE_SIZE } = options;
+
+  const searchTerm = `%${query.trim()}%`;
+  const whereSql = `
+    ${SELECT_CHANNEL}
+    AND (
+      c.name LIKE ? OR
+      c.category LIKE ? OR
+      c.description LIKE ? OR
+      c.language LIKE ? OR
+      c.country LIKE ? OR
+      s.name LIKE ?
+    )
+  `;
+  const whereParams = [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm];
+
+  const totalRow = database
+    .prepare(`SELECT COUNT(*) AS n FROM (${whereSql})`)
+    .get(...whereParams) as { n: number };
+  const total = Number(totalRow.n);
+
+  const rows = database
+    .prepare(`${whereSql} ${ORDER_CHANNEL} LIMIT ? OFFSET ?`)
+    .all(...whereParams, limit, offset) as ChannelRow[];
+
+  return {
+    channels: rows.map(rowToChannel),
+    total,
+    hasMore: offset + rows.length < total,
+  };
+}
+
 // 返回频道分类列表（含各分类频道数），供分类导航展示。
 export async function getCategoriesWithCount(): Promise<
   Array<{ category: string; count: number }>

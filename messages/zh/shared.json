@@ -6,7 +6,8 @@
     "peertube": "PeerTube",
     "ranking": "排行榜",
     "categories": "分类",
-    "searchPlaceholder": "搜索播客、单集或创作者"
+    "searchPlaceholder": "搜索播客、单集或创作者",
+    "liveSearchPlaceholder": "搜索直播频道（名称、分类...）"
   },
   "footer": {
     "explore": "探索",

@@ -10,11 +10,17 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const isLivePage = pathname?.startsWith('/live');
+
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       if (searchTerm.trim()) {
-        router.push(`/podcast/?tag=${encodeURIComponent(searchTerm.trim())}`);
+        if (isLivePage) {
+          router.push(`/live?search=${encodeURIComponent(searchTerm.trim())}`);
+        } else {
+          router.push(`/podcast/?tag=${encodeURIComponent(searchTerm.trim())}`);
+        }
       }
     }
   };
@@ -49,7 +55,7 @@ export default function Navbar() {
               <input
                 type="text"
                 className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 sm:text-sm"
-                placeholder={t('searchPlaceholder')}
+                placeholder={isLivePage ? t('liveSearchPlaceholder') : t('searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
