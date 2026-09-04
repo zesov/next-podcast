@@ -1,6 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 import type { ComponentType } from "react";
 import type { PeerTubeVideo } from "@/app/types";
 import { usePlaybackTracking } from "@/hooks/usePlaybackTracking";
@@ -12,20 +11,42 @@ interface PlayerElementProps {
   className?: string;
 }
 
-const PeerTubeVideoElement = dynamic(
-  () =>
-    import("peertube-video-element/react").then(
-      (mod) => mod.default as ComponentType<PlayerElementProps>,
-    ),
-  { ssr: false, loading: () => <PlayerLoading /> },
-);
+// 仅在客户端挂载后才加载 peertube-video-element，避免 SSR/水合期间
+// 触发 "Channel.build() called without a valid window argument" 错误
+// 见 node_modules/peertube-video-element/dist/peertube-video-element.js:165
+function PeerTubeVideoElementWrapper({
+  controls,
+  src,
+  poster,
+  className,
+}: PlayerElementProps) {
+  const [mounted, setMounted] = useState(false);
+  const [Component, setComponent] = useState<ComponentType<PlayerElementProps> | null>(null);
 
-function PlayerLoading() {
-  return (
-    <div className="aspect-video rounded-xl bg-gray-900 flex items-center justify-center text-white">
-      正在加载 PeerTube 播放器…
-    </div>
-  );
+  useEffect(() => {
+    setMounted(true);
+    import("peertube-video-element/react").then((mod) => {
+      setComponent(() => mod.default as ComponentType<PlayerElementProps>);
+    });
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="aspect-video rounded-xl bg-gray-900 flex items-center justify-center text-white">
+        正在加载 PeerTube 播放器…
+      </div>
+    );
+  }
+
+  if (!Component) {
+    return (
+      <div className="aspect-video rounded-xl bg-gray-900 flex items-center justify-center text-white">
+        正在加载 PeerTube 播放器…
+      </div>
+    );
+  }
+
+  return <Component controls={controls} src={src} poster={poster} className={className} />;
 }
 
 interface Props {
@@ -121,7 +142,7 @@ export default function PeerTubePlayer({ video }: Props) {
 
   return (
     <div ref={videoRef} className="rounded-xl overflow-hidden bg-black shadow-lg">
-      <PeerTubeVideoElement
+      <PeerTubeVideoElementWrapper
         controls
         src={video.embedUrl}
         poster={video.previewUrl || video.thumbnailUrl}

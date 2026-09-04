@@ -39,8 +39,42 @@ function verifyAuth(req: Request): boolean {
   return token === PROXY_SECRET;
 }
 
+function serializeBigInt(data: unknown): unknown {
+  if (typeof data === 'bigint') {
+    return Number(data);
+  }
+  if (Array.isArray(data)) {
+    return data.map(serializeBigInt);
+  }
+  if (data !== null && typeof data === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      result[key] = serializeBigInt(value);
+    }
+    return result;
+  }
+  return data;
+}
+
+function serializeBigInt(data: unknown): unknown {
+  if (typeof data === 'bigint') {
+    return Number(data);
+  }
+  if (Array.isArray(data)) {
+    return data.map(serializeBigInt);
+  }
+  if (data !== null && typeof data === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      result[key] = serializeBigInt(value);
+    }
+    return result;
+  }
+  return data;
+}
+
 function jsonResponse(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), {
+  return new Response(JSON.stringify(serializeBigInt(data)), {
     status,
     headers: { "Content-Type": "application/json" },
   });
