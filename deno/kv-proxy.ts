@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
       if (!Array.isArray(prefix)) return errorResponse("prefix must be array");
       
       const entries: KvEntry[] = [];
-      for await (const entry of kv.list({ prefix },{ limit: limit, reverse: false })) {
+      for await (const entry of kv.list({ prefix: prefix as Deno.KvKey }, { limit, reverse: false })) {
         entries.push({
           key: entry.key,
           value: entry.value,
