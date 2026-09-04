@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { Search, Podcast } from 'lucide-react';
 
 export default function Navbar() {
   const t = useTranslations('navbar');
@@ -29,7 +30,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <i className="fa-solid fa-podcast text-gray-600 text-2xl mr-2"></i>
+              <Podcast className="text-gray-600 text-2xl mr-2" aria-hidden="true" />
               <span className="font-semibold text-xl">{t('brand')}</span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -43,7 +44,7 @@ export default function Navbar() {
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
             <div className="relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="fas fa-search text-gray-400"></i>
+                <Search className="h-4 w-4 text-gray-400" aria-hidden="true" />
               </div>
               <input
                 type="text"
