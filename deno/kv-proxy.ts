@@ -15,8 +15,6 @@
  * DENO_KV_TOKEN="your-KV_PROXY_SECRET"
  */
 
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-
 // On Deno Deploy, this auto-connects to the project's KV database
 // Locally, you can use `deno run --allow-net --allow-env kv-proxy.ts` with DENO_KV_URL set
 const kv = await Deno.openKv();
@@ -52,7 +50,7 @@ function errorResponse(message: string, status = 400): Response {
   return jsonResponse({ error: message }, status);
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // CORS for local development
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -135,7 +133,7 @@ serve(async (req) => {
       if (!Array.isArray(prefix)) return errorResponse("prefix must be array");
       
       const entries: KvEntry[] = [];
-      for await (const entry of kv.list({ prefix, limit })) {
+      for await (const entry of kv.list({ prefix },{ limit: limit, reverse: false })) {
         entries.push({
           key: entry.key,
           value: entry.value,
@@ -151,7 +149,7 @@ serve(async (req) => {
       if (!Array.isArray(keys)) return errorResponse("keys must be array");
       
       const results = await Promise.all(
-        keys.map((key: unknown[]) => kv.get(key))
+        keys.map((key: unknown[]) => kv.get(key as Deno.KvKey))
       );
       
       return jsonResponse({
