@@ -56,6 +56,7 @@ interface Props {
 export default function PeerTubePlayer({ video }: Props) {
   const videoRef = useRef<HTMLDivElement>(null);
   const hasStartedRef = useRef(false);
+  const observersRef = useRef<MutationObserver[]>([]);
 
   const { startTracking, stopTracking, heartbeat } = usePlaybackTracking({
     contentType: "peertube",
@@ -64,79 +65,90 @@ export default function PeerTubePlayer({ video }: Props) {
     enabled: true,
   });
 
-  // PeerTube video element exposes events on the underlying video element
+  // 监听 peertube-video 自定义元素的渲染
   useEffect(() => {
     const container = videoRef.current;
     if (!container) return;
 
-    // Wait for the custom element to be ready
-    const checkElement = () => {
-      const videoEl = container.querySelector("peertube-video")?.shadowRoot?.querySelector("video") ||
-                      container.querySelector("video");
-      return videoEl;
+    let cleanupDone = false;
+
+    const attachToCustomElement = (peertubeEl: HTMLElement) => {
+      // Test if events fire on the custom element itself
+      const handlePlay = async () => {
+        if (!hasStartedRef.current) {
+          hasStartedRef.current = true;
+          await startTracking({ title: video.name });
+        }
+        // Start heartbeat - peertube-video extends HTMLVideoElement
+        heartbeatInterval.current = setInterval(() => {
+          // @ts-ignore - peertube-video has HTMLVideoElement properties
+          if (!peertubeEl.paused && !peertubeEl.ended) {
+            // @ts-ignore
+            heartbeat(peertubeEl.currentTime);
+          }
+        }, 30000);
+      };
+
+      const handlePause = () => {
+        if (heartbeatInterval.current) {
+          clearInterval(heartbeatInterval.current);
+          heartbeatInterval.current = null;
+        }
+      };
+
+      const handleEnded = async () => {
+        if (heartbeatInterval.current) {
+          clearInterval(heartbeatInterval.current);
+          heartbeatInterval.current = null;
+        }
+        // @ts-ignore - peertube-video has HTMLVideoElement properties
+        await stopTracking(peertubeEl.currentTime || 0);
+        hasStartedRef.current = false;
+      };
+
+      peertubeEl.addEventListener("play", handlePlay);
+      peertubeEl.addEventListener("pause", handlePause);
+      peertubeEl.addEventListener("ended", handleEnded);
+
+      // Store cleanup function
+      return () => {
+        peertubeEl.removeEventListener("play", handlePlay);
+        peertubeEl.removeEventListener("pause", handlePause);
+        peertubeEl.removeEventListener("ended", handleEnded);
+        if (heartbeatInterval.current) {
+          clearInterval(heartbeatInterval.current);
+        }
+      };
     };
 
-    const videoEl = checkElement();
-    if (!videoEl) {
-      // Retry after a short delay
-      const timer = setTimeout(() => {
-        const el = checkElement();
-        if (el) attachListeners(el);
-      }, 500);
-      return () => clearTimeout(timer);
+    // Check if already rendered
+    let existingPeertubeEl = container.querySelector("peertube-video") as HTMLElement | null;
+    let cleanup: (() => void) | null = null;
+
+    if (existingPeertubeEl) {
+      cleanup = attachToCustomElement(existingPeertubeEl);
+    } else {
+      // Wait for the custom element to be rendered
+      const observer = new MutationObserver(() => {
+        if (cleanupDone) return;
+        const peertubeEl = container.querySelector("peertube-video") as HTMLElement | null;
+        if (peertubeEl) {
+          observer.disconnect();
+          cleanup = attachToCustomElement(peertubeEl);
+        }
+      });
+      
+      observer.observe(container, { childList: true, subtree: true });
+      observersRef.current.push(observer);
     }
 
-    attachListeners(videoEl);
-    return () => detachListeners(videoEl);
-  }, [video.uuid]);
-
-  const attachListeners = (videoEl: HTMLVideoElement) => {
-    const handlePlay = async () => {
-      if (!hasStartedRef.current) {
-        hasStartedRef.current = true;
-        await startTracking({ title: video.name });
-      }
-      // Start heartbeat
-      heartbeatInterval.current = setInterval(() => {
-        if (!videoEl.paused && !videoEl.ended) {
-          heartbeat(videoEl.currentTime);
-        }
-      }, 30000);
-    };
-
-    const handlePause = () => {
-      if (heartbeatInterval.current) {
-        clearInterval(heartbeatInterval.current);
-        heartbeatInterval.current = null;
-      }
-    };
-
-    const handleEnded = async () => {
-      if (heartbeatInterval.current) {
-        clearInterval(heartbeatInterval.current);
-        heartbeatInterval.current = null;
-      }
-      await stopTracking(videoEl.currentTime);
-      hasStartedRef.current = false;
-    };
-
-    videoEl.addEventListener("play", handlePlay);
-    videoEl.addEventListener("pause", handlePause);
-    videoEl.addEventListener("ended", handleEnded);
-
     return () => {
-      videoEl.removeEventListener("play", handlePlay);
-      videoEl.removeEventListener("pause", handlePause);
-      videoEl.removeEventListener("ended", handleEnded);
-      if (heartbeatInterval.current) {
-        clearInterval(heartbeatInterval.current);
-      }
+      cleanupDone = true;
+      cleanup?.();
+      observersRef.current.forEach(o => o.disconnect());
+      observersRef.current = [];
     };
-  };
-
-  const detachListeners = (videoEl: HTMLVideoElement) => {
-    // Cleanup handled by returned function in attachListeners
-  };
+  }, [video.uuid, startTracking, stopTracking, heartbeat]);
 
   const heartbeatInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
