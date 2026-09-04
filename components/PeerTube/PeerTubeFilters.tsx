@@ -10,6 +10,7 @@ export interface PeerTubeFiltersRef {
 
 interface Props {
   initialFilters?: Partial<PeerTubeFilters>;
+  onApply?: (filters: Partial<PeerTubeFilters>) => void;
 }
 
 const SORT_OPTIONS = [
@@ -243,7 +244,7 @@ function TextInput({ label, value, onChange, placeholder, t, className = "" }: {
   );
 }
 
-export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ initialFilters = {} }, ref) {
+export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ initialFilters = {}, onApply }, ref) {
   const t = useTranslations("peertube.filters");
 
   // Initialize filter state from initialFilters or defaults
@@ -287,6 +288,10 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
 
   const getFilters = useCallback(() => filters, [filters]);
 
+  const handleApply = useCallback(() => {
+    onApply?.(filters);
+  }, [filters, onApply]);
+
   useImperativeHandle(ref, () => ({
     getFilters,
     reset: handleReset,
@@ -296,13 +301,22 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
     <div className="w-full p-4 bg-white rounded-xl border border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900">{t("title")}</h2>
-        <button
-          type="button"
-          onClick={handleReset}
-          className="text-xs text-indigo-600 hover:text-indigo-800"
-        >
-          {t("reset")}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleApply}
+            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+          >
+            {t("apply")}
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-xs text-indigo-600 hover:text-indigo-800"
+          >
+            {t("reset")}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
