@@ -113,6 +113,12 @@
         "uk": "乌克兰语",
         "zh": "中文"
       }
+    },
+    "videoCard": {
+      "publishedBy": "发布者：{name}",
+      "onDate": "于 {date}",
+      "language": "语言：{label}",
+      "inChannel": "频道：{channel}"
     }
   }
 }

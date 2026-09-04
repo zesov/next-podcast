@@ -17,6 +17,9 @@ interface SepiaRawVideo {
   tags?: string[];
   channel?: { displayName?: string };
   account?: { displayName?: string };
+  createdAt?: string;
+  updatedAt?: string;
+  views?: number;
 }
 
 function normalize(v: SepiaRawVideo): PeerTubeVideo {
@@ -37,6 +40,9 @@ function normalize(v: SepiaRawVideo): PeerTubeVideo {
     categoryLabel: v.category?.label,
     languageLabel: v.language?.label,
     tags: v.tags || [],
+    createdAt: v.createdAt,
+    updatedAt: v.updatedAt,
+    views: v.views || 0,
   };
 }
 
@@ -55,7 +61,7 @@ export async function GET(request: NextRequest) {
       start: String(start),
       count: String(count),
       searchTarget: "search-index",
-      sort: searchParams.get("sort") || "-match",
+      sort: searchParams.get("sort") || "-publishedAt",
     });
     if (rawSearch) {
       qs.set("search", rawSearch);

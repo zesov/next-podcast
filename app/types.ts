@@ -54,6 +54,9 @@ export interface PeerTubeVideo {
   categoryLabel?: string;
   languageLabel?: string;
   tags: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  views: number;
 }
 
 export interface PeerTubeSearchResponse {

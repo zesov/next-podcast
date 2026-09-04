@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import type { PeerTubeVideo } from "@/app/types";
 
 function formatDuration(seconds: number): string {
@@ -10,6 +11,19 @@ function formatDuration(seconds: number): string {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return "";
+  try {
+    return new Date(dateStr).toLocaleDateString("zh-HK", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
 interface Props {
   video: PeerTubeVideo;
   active: boolean;
@@ -17,6 +31,8 @@ interface Props {
 }
 
 export default function PeerTubeVideoCard({ video, active, onSelect }: Props) {
+  const t = useTranslations("peertube.videoCard");
+
   return (
     <button
       type="button"
@@ -45,9 +61,20 @@ export default function PeerTubeVideoCard({ video, active, onSelect }: Props) {
         <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-indigo-600">
           {video.name}
         </h3>
+        {video.accountDisplayName && (
+          <p className="mt-0.5 text-xs text-gray-400">
+            {t("publishedBy", { name: video.accountDisplayName })}
+            {video.updatedAt && ` ${t("onDate", { date: formatDate(video.updatedAt) })}`}
+          </p>
+        )}
         <p className="mt-1 text-xs text-gray-500 truncate">
-          {video.channelDisplayName || video.host}
-        </p>
+          {t("inChannel", { channel: video.channelDisplayName || video.host })}
+        </p>        
+        {video.languageLabel && (
+          <p className="mt-0.5 text-xs text-gray-400">
+            {t("language", { label: video.languageLabel })}
+          </p>
+        )}
         {video.tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {video.tags.slice(0, 3).map((tag) => (

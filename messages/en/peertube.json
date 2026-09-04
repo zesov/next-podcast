@@ -113,6 +113,12 @@
         "uk": "Українська",
         "zh": "中文"
       }
+    },
+    "videoCard": {
+      "publishedBy": "Published by: {name}",
+      "onDate": "on {date}",
+      "language": "Language: {label}",
+      "inChannel": "In channel {channel}"
     }
   }
 }
