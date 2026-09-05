@@ -8,6 +8,7 @@ export interface FeaturedItem {
 }
 
 export interface TopPodcast {
+  id: number;
   title: string;
   description: string;
   duration?: string;

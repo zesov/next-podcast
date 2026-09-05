@@ -17,24 +17,20 @@ export default async function Home({ params }: Props) {
   setRequestLocale(locale);
 
   const query = "rthk";
-  const [feedsData, topPodcastsData, recentEpisodesData, episodesRandomData, categoriesData] = await Promise.all([
-    client.search(query,{max:8}),
-    client.trending({ max: 6 }),
+  const [searchPodcastsData, trendingPodcastsData, recentEpisodesData, episodesRandomData, categoriesData] = await Promise.all([
+    client.search(query,{max:6}),
+    client.trending({ max: 8 }),
     client.recentEpisodes({ max: 6 }),
     client.episodesRandom({ max: 3 }),
     client.categories(),
   ]);
 
-  const { feeds } = feedsData;
-  const topPodcasts = topPodcastsData;
-  const recentEpisodes = recentEpisodesData;
-  const episodesRandom = episodesRandomData;
-  const categories = categoriesData;
+  const { feeds } = trendingPodcastsData; 
 
   return (
     <EpisodeProvider>
-      <Main feeds={feeds} topPodcasts={topPodcasts} 
-      recentEpisodes={recentEpisodes} episodesRandom={episodesRandom} categories={categories}/>
+      <Main feeds={feeds} topPodcasts={searchPodcastsData} 
+      recentEpisodes={recentEpisodesData} episodesRandom={episodesRandomData} categories={categoriesData}/>
     </EpisodeProvider>
   );
 }

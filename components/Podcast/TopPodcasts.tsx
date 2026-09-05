@@ -2,6 +2,7 @@
 import {TopPodcast} from "../../app/types";
 import { useEpisode } from '../../app/contexts/EpisodeContext';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 // import React from 'react';
 
 export default function TopPodcasts({data}:{data:TopPodcast[]}) {
@@ -22,7 +23,7 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
     setToPlay(true);
   };  
   return (
-    <section className="mb-8">
+    <section className="mb-8 mt-8">
       <h2 className="text-xl font-bold mb-4">{t('topPodcasts')}</h2>
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <ul className="divide-y divide-gray-200">
@@ -32,9 +33,11 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
                 <span className="text-gray-500 w-6 text-center">{index + 1}</span>
                 <img className="w-12 h-12 rounded-full" src={podcast.image} alt={podcast.title} />
                 <div className="ml-4 flex-1">
-                  <h3 className="font-medium">{podcast.title}</h3>
-                  <p className="text-sm text-gray-500">{t('latestUpdate')}: {(new Date(podcast.newestItemPublishTime*1000)).toDateString()}</p>
-                </div>
+                 <Link href={`/podcast/${podcast.id}`}>
+                   <h3 className="font-medium">{podcast.title}</h3>
+                 </Link>
+                 <p className="text-sm text-gray-500">{t('latestUpdate')}: {(new Date(podcast.newestItemPublishTime*1000)).toDateString()}</p>
+               </div>
                 <button className="text-indigo-600 hover:text-indigo-800"
                   onClick={() => handleClick(podcast)}
                 >

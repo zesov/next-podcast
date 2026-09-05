@@ -29,8 +29,8 @@ export default function Index({feeds,topPodcasts,recentEpisodes,episodesRandom,c
           <div className="lg:w-2/3">
             <FeaturedSection data={feeds}/>
             <CategorySection />
-            <TopPodcasts data={topPodcasts.feeds}/>
             <TopEpisodes items={recentEpisodes.items}/>
+            <TopPodcasts data={topPodcasts.feeds}/>
           </div>
 
           <div className="lg:w-1/3">
