@@ -4,7 +4,8 @@ export interface FeaturedItem {
   description: string;
   duration?: string;
   image?: string; 
-  lastUpdateTime: number;
+  lastUpdateTime?: number;
+  newestItemPubdate: number;
 }
 
 export interface TopPodcast {
@@ -13,7 +14,7 @@ export interface TopPodcast {
   description: string;
   duration?: string;
   image?: string; 
-  newestItemPublishTime: number;
+  lastUpdateTime: number;
 }
 
 export interface Episode {

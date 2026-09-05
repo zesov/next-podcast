@@ -15,6 +15,7 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
 //     { name: "西西弗高速 西西弗高速", update: "每周更新" }
 //   ];
   const topPodcasts = data;
+  // console.log(topPodcasts);
   const { setCurrentEpisode, setToPlay } = useEpisode();
   const handleClick = async (item: any) => {
     const res = await fetch(`/api/episodesByFeedId?id=${item.id}`)
@@ -36,7 +37,7 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
                  <Link href={`/podcast/${podcast.id}`}>
                    <h3 className="font-medium">{podcast.title}</h3>
                  </Link>
-                 <p className="text-sm text-gray-500">{t('latestUpdate')}: {(new Date(podcast.newestItemPublishTime*1000)).toDateString()}</p>
+                 <p className="text-sm text-gray-500">{t('latestUpdate')}: {(new Date(podcast.lastUpdateTime*1000)).toDateString()}</p>
                </div>
                 <button className="text-indigo-600 hover:text-indigo-800"
                   onClick={() => handleClick(podcast)}
