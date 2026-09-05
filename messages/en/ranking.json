@@ -1,0 +1,8 @@
+{
+  "title": "Popular Podcasts",
+  "failedToLoad": "Failed to load rankings. Please try again later.",
+  "noData": "No ranking data available yet. Start listening to see rankings here!",
+  "by": "By",
+  "plays": "{{count}} plays",
+  "unknown": "Unknown"
+}

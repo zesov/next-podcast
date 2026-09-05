@@ -1,0 +1,28 @@
+{
+  "navbar": {
+    "brand": "Podcast",
+    "browse": "Browse",
+    "live": "Live",
+    "peertube": "PeerTube",
+    "ranking": "Rankings",
+    "categories": "Categories",
+    "searchPlaceholder": "Search podcasts, episodes or creators",
+    "liveSearchPlaceholder": "Search live channels by name, category..."
+  },
+  "footer": {
+    "explore": "Explore",
+    "browse": "Browse",
+    "ranking": "Rankings",
+    "categories": "Categories",
+    "about": "About",
+    "aboutUs": "About Us",
+    "creators": "Creators",
+    "jobs": "Careers",
+    "support": "Support",
+    "help": "Help Center",
+    "guidelines": "Community Guidelines",
+    "feedback": "Feedback",
+    "follow": "Follow Us",
+    "copyright": "Copyright © 2025 Next Podcast Inc. All rights reserved."
+  }
+}

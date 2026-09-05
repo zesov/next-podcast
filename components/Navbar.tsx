@@ -1,26 +1,23 @@
 'use client';
-import Link from 'next/link'
-import React, { useState } from 'react';
-// import { useEpisode } from '../app/contexts/EpisodeContext';
-
+import React, { useState, useRef, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { Podcast } from 'lucide-react';
+import PeerTubeFiltersComp, { PeerTubeFiltersRef } from '@/components/PeerTube/PeerTubeFilters';
+import SearchInput from '@/components/SearchInput';
 
 export default function Navbar() {
-  const [searchTerm, setSearchTerm] = useState(''); // 管理输入值
-  // const { setCurrentEpisode, setToPlay } = useEpisode();
+  const t = useTranslations('navbar');
+  const pathname = usePathname();
+  const router = useRouter();
 
-  // 处理回车键事件
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      event.preventDefault(); // 阻止默认行为
-      if (searchTerm.trim()) { // 若输入不为空
-        performSearch(searchTerm);
-      }
-    }
-  };
+  const isPeertubePage = pathname?.startsWith('/peertube');
+  const peertubeFiltersRef = useRef<PeerTubeFiltersRef | null>(null);
+  const [isPeertubeFiltersOpen, setIsPeertubeFiltersOpen] = useState(false);
 
-  // 示例搜索函数（需自行实现）
-  const performSearch = (query: string) => {
-    window.location.href = `/podcast/?tag=${query}`;
+  // 切换语言（保持当前路径，仅替换语言前缀）
+  const switchLocale = (locale: string) => {
+    router.replace(pathname, { locale });
   };
 
   return (
@@ -29,30 +26,42 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <i className="fa-solid fa-podcast text-gray-600 text-2xl mr-2"></i>
-              <span className="font-semibold text-xl">播客</span>
+              <Podcast className="text-gray-600 text-2xl mr-2" aria-hidden="true" />
+              <span className="font-semibold text-xl">{t('brand')}</span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link href="/" className="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">浏览</Link>
-              <Link href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">排行榜</Link>
-              <Link href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">分类</Link>
+              <Link href="/" className="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('browse')}</Link>
+              <Link href="/peertube" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('peertube')}</Link>
+              <Link href="/live" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('live')}</Link>
+              <Link href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('ranking')}</Link>
+              <Link href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('categories')}</Link>
             </div>
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <div className="relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="fas fa-search text-gray-400"></i>
-              </div>
-              <input type="text" className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 sm:text-sm" 
-                  placeholder="搜索播客、单集或创作者" 
-                  value={searchTerm} // 绑定输入值
-                  onChange={(e) => setSearchTerm(e.target.value)} // 更新输入值
-                  onKeyDown={handleKeyDown} // 监听回车键
-              />
+          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+            <SearchInput
+              peertubeFiltersRef={peertubeFiltersRef}
+              onPeertubeFiltersOpenChange={setIsPeertubeFiltersOpen}
+            />
+
+            {/* 语言切换 */}
+            <div className="flex items-center space-x-1 text-sm font-medium">
+              <button
+                onClick={() => switchLocale('zh')}
+                className="px-2 py-1 rounded hover:bg-gray-100 text-gray-700"
+              >
+                中
+              </button>
+              <span className="text-gray-300">|</span>
+              <button
+                onClick={() => switchLocale('en')}
+                className="px-2 py-1 rounded hover:bg-gray-100 text-gray-700"
+              >
+                EN
+              </button>
             </div>
           </div>
         </div>
       </div>
     </nav>
-  )
+  );
 }

@@ -1,11 +1,13 @@
-"use client"; // 添加这行指令
+"use client";
 import React, { useState, useRef, useEffect } from 'react';
-import {Episode} from '../app/types';
+import { Episode } from '../app/types';
 import { useEpisode } from '../app/contexts/EpisodeContext';
+import { useTranslations } from 'next-intl';
+import { usePlaybackTracking } from '@/hooks/usePlaybackTracking';
 
 const defaultEpisode: Episode = {
   id: 1,
-  title: '未选择节目',
+  title: '',
   description: '',
   enclosureUrl: 'https://podcast.rthk.hk/podcast/media/enca_hktoday/78_2508250850_71679.mp3',
   enclosureType: 'audio/mpeg',
@@ -17,7 +19,8 @@ const defaultEpisode: Episode = {
   feedImage: 'https://podcast.rthk.hk/podcast/upload_photo/item_photo/1400x1400_78.jpg',
 };
 
-export default function Player({title=true}: {title?: boolean}) {
+export default function Player({ title = true }: { title?: boolean }) {
+  const t = useTranslations('player');
   const { currentEpisode: contextEpisode, toPlay, setToPlay } = useEpisode();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -25,10 +28,17 @@ export default function Player({title=true}: {title?: boolean}) {
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const hasStartedRef = useRef(false);
 
   const currentEpisode = contextEpisode || defaultEpisode;
-  if(!currentEpisode) return null;
-  
+  if (!currentEpisode) return null;
+
+  const { startTracking, stopTracking, heartbeat } = usePlaybackTracking({
+    contentType: 'podcast',
+    contentId: String(currentEpisode.id),
+    contentTitle: currentEpisode.title,
+    enabled: true,
+  });
 
   // 初始化音频元素
   useEffect(() => {
@@ -37,7 +47,11 @@ export default function Player({title=true}: {title?: boolean}) {
 
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
-    const handleEnd = () => setIsPlaying(false);
+    const handleEnd = async () => {
+      setIsPlaying(false);
+      await stopTracking(audio.currentTime);
+      hasStartedRef.current = false;
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
@@ -52,28 +66,69 @@ export default function Player({title=true}: {title?: boolean}) {
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', handleEnd);
     };
-  }, [volume, isMuted]);
+  }, [volume, isMuted, stopTracking]);
 
   // 播放/暂停切换
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
     if (isPlaying) {
       audio.pause();
     } else {
+      // Start tracking on first play
+      if (!hasStartedRef.current) {
+        hasStartedRef.current = true;
+        await startTracking({ title: currentEpisode.title });
+      }
       audio.play().catch(error => {
-        console.error("播放失败:", error);
+        console.error(t("playbackFailed"), error);
       });
     }
     setIsPlaying(!isPlaying);
   };
 
+  // 心跳定时器
+  const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 监听播放状态变化以管理心跳
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => {
+      if (heartbeatIntervalRef.current) return;
+      heartbeatIntervalRef.current = setInterval(() => {
+        if (!audio.paused && !audio.ended) {
+          heartbeat(audio.currentTime);
+        }
+      }, 30000);
+    };
+
+    const handlePause = () => {
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+    };
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+      }
+    };
+  }, [heartbeat]);
+
   // 前进15秒
   const forward = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    
+
     audio.currentTime = Math.min(audio.currentTime + 15, duration);
   };
 
@@ -81,7 +136,7 @@ export default function Player({title=true}: {title?: boolean}) {
   const backward = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    
+
     audio.currentTime = Math.max(audio.currentTime - 15, 0);
   };
 
@@ -89,7 +144,7 @@ export default function Player({title=true}: {title?: boolean}) {
   const handleSeek = (e: React.MouseEvent) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     audio.currentTime = percent * duration;
@@ -99,13 +154,13 @@ export default function Player({title=true}: {title?: boolean}) {
   const handleVolumeChange = (e: React.MouseEvent) => {
     const audio = audioRef.current;
     if (!audio) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const newVolume = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    
+
     setVolume(newVolume);
     audio.volume = newVolume;
-    
+
     // 如果音量调整为0，则静音
     if (newVolume === 0 && !isMuted) {
       setIsMuted(true);
@@ -118,13 +173,13 @@ export default function Player({title=true}: {title?: boolean}) {
   const toggleMute = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    
+
     audio.muted = !isMuted;
     setIsMuted(!isMuted);
   };
 
   // 格式化时间显示
-  const formatTime = (seconds:number) => {
+  const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -139,52 +194,53 @@ export default function Player({title=true}: {title?: boolean}) {
   useEffect(() => {
     if (toPlay) {
       const audio = audioRef.current;
-      if (!audio) return;  
+      if (!audio) return;
       setCurrentTime(0);
       setDuration(audio.duration);
-        audio.play().catch(error => {
-          console.error("播放失败:", error);
-        });
+      audio.play().catch(error => {
+        console.error(t("playbackFailed"), error);
+      });
       setIsPlaying(true);
       setToPlay(false);
     }
-  }, [toPlay, isPlaying]); 
+  }, [toPlay, isPlaying]);
 
   return (
-<>
+    <>
       <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-          crossOrigin="anonymous"
-        />
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        crossOrigin="anonymous"
+      />
       {/* 隐藏的音频元素 */}
       <audio
         ref={audioRef}
         src={currentEpisode.enclosureUrl}
         preload="metadata"
       />
-      
-      {/* 播放器界面 */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6 lg:sticky lg:top-20 mobile-fixed-bottom">
+
+{/* 播放器界面 */}
+       <div className="bg-white rounded-lg shadow p-4 mb-6 lg:sticky lg:top-20 mobile-fixed-bottom z-50">
         {title && (
-        <div className="flex items-center mb-4">
-          <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center">
-            <img className=" text-indigo-500 text-xl" src={currentEpisode.image || currentEpisode.feedImage || '/music.svg'}></img>
+          <div className="flex items-center mb-4">
+            <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <img className="text-indigo-500 text-xl" src={currentEpisode.image || currentEpisode.feedImage || '/music.svg'}></img>
+            </div>
+            <div className="ml-4">
+              <h3 className="font-medium">{currentEpisode.title || t('notSelected')}</h3>
+              <p className="text-sm text-gray-500">{currentEpisode.feedTitle}</p>
+            </div>
           </div>
-          <div className="ml-4">
-            <h3 className="font-medium">{currentEpisode.title}</h3>
-            <p className="text-sm text-gray-500">{currentEpisode.feedTitle}</p>
-          </div>
-        </div>)}
-        
+        )}
+
         {/* 进度条 */}
         <div className="mb-4">
-          <div 
+          <div
             className="h-1 bg-gray-200 rounded-full w-full mb-1 cursor-pointer"
             onClick={handleSeek}
           >
-            <div 
-              className="h-1 bg-indigo-500 rounded-full" 
+            <div
+              className="h-1 bg-indigo-500 rounded-full"
               style={{ width: `${progressPercent}%` }}
             ></div>
           </div>
@@ -193,44 +249,44 @@ export default function Player({title=true}: {title?: boolean}) {
             <span>{formatTime(duration)}</span>
           </div>
         </div>
-        
+
         {/* 控制按钮 */}
         <div className="flex justify-between items-center">
-          <button 
+          <button
             className="text-gray-500 hover:text-gray-700"
             onClick={backward}
           >
             <i className="fas fa-step-backward"></i>
           </button>
-          
-          <button 
+
+          <button
             className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-10 h-10 flex items-center justify-center"
             onClick={togglePlayPause}
           >
             <i className={isPlaying ? "fas fa-pause" : "fas fa-play"}></i>
           </button>
-          
-          <button 
+
+          <button
             className="text-gray-500 hover:text-gray-700"
             onClick={forward}
           >
             <i className="fas fa-step-forward"></i>
           </button>
-          
-          <button 
+
+          <button
             className="text-gray-500 hover:text-gray-700"
             onClick={toggleMute}
           >
             <i className={isMuted ? "fas fa-volume-mute" : "fas fa-volume-up"}></i>
           </button>
-          
+
           <div className="w-20">
-            <div 
+            <div
               className="h-1 bg-gray-200 rounded-full w-full cursor-pointer"
               onClick={handleVolumeChange}
             >
-              <div 
-                className="h-1 bg-indigo-500 rounded-full" 
+              <div
+                className="h-1 bg-indigo-500 rounded-full"
                 style={{ width: `${volumePercent}%` }}
               ></div>
             </div>
@@ -238,5 +294,5 @@ export default function Player({title=true}: {title?: boolean}) {
         </div>
       </div>
     </>
-  )
+  );
 }

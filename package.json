@@ -6,10 +6,16 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:seed": "node scripts/seedLiveChannels.ts"
   },
   "dependencies": {
-    "next": "15.5.0",
+    "@deno/kv": "^0.14.0",
+    "hls.js": "^1.7.1",
+    "lucide-react": "^1.39.0",
+    "next": "16.1.6",
+    "next-intl": "^4.14.2",
+    "peertube-video-element": "^1.1.0",
     "podcastdx-client": "^5.1.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -19,12 +25,23 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.0",
+    "eslint-config-next": "16.1.6",
+    "jsdom": "^30.0.1",
+    "msw": "^2.15.0",
+    "playwright": "^1.62.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
