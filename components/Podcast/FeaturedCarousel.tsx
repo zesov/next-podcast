@@ -85,8 +85,8 @@ const FeaturedCarousel = ({ featuredItems }: {featuredItems: FeaturedItem[]}) =>
               </a>
               <div className="mt-3 flex items-center justify-between">
                 <span className="text-xs text-gray-500">
-                  {(new Date(item.newestItemPublishTime * 1000)).toDateString() || '最新更新'}
-                </span>
+                   {item.newestItemPublishTime ? (new Date(item.newestItemPublishTime * 1000)).toDateString() : '最新更新'}
+                 </span>
               </div>
             </div>
           </div>
