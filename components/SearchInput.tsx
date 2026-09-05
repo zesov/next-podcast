@@ -162,8 +162,8 @@ export default function SearchInput({
         </div>
         <input
           ref={searchInputRef}
-          type="text"
-          className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 sm:text-sm"
+          type="search"
+          className="focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-[280px] pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 sm:text-sm"
           placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
