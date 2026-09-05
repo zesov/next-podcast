@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useTranslations, useFormatter } from "next-intl";
 import type { PeerTubeVideo } from "@/app/types";
 import type { PeerTubeFilters as PeerTubeFiltersType } from "@/app/types";
@@ -86,7 +86,10 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0, searchTe
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const mergedFilters = { ...DEFAULT_FILTERS, ...filters };
+  const mergedFilters = useMemo(
+    () => ({ ...DEFAULT_FILTERS, ...filters }),
+    [filters]
+  );
 
   const runSearch = useCallback(async (query: string) => {
     setLoading(true);

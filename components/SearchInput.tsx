@@ -117,7 +117,7 @@ export default function SearchInput({
   }, [dropdownRef]);
 
   const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent) => {
+    (event: React.KeyboardEvent, currentFilters?: any) => {
       if (event.key === "Enter") {
         event.preventDefault();
         if (!searchTerm.trim()) return;
@@ -126,9 +126,9 @@ export default function SearchInput({
         if (isLivePage) {
           router.push(`/live?search=${encodeURIComponent(term)}`);
         } else if (isPeertubePage) {
-          const currentFilters = peertubeFiltersRef.current?.getFilters() ?? {};
+          const filters = currentFilters ?? peertubeFiltersRef.current?.getFilters() ?? {};
           const filterParams = new URLSearchParams();
-          Object.entries(currentFilters).forEach(([key, value]) => {
+          Object.entries(filters).forEach(([key, value]) => {
             if (value !== null && value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
               if (Array.isArray(value)) {
                 filterParams.set(key, value.join(','));
