@@ -253,7 +253,7 @@ class AtomicOperationBuilder {
 // Singleton instance
 let kvClient: DenoKvProxyClient | null = null;
 
-function getClient(): DenoKvProxyClient {
+export function getClient(): DenoKvProxyClient {
   if (!kvClient) {
     kvClient = new DenoKvProxyClient();
   }
