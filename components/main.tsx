@@ -1,16 +1,35 @@
 'use client';
-import Head from 'next/head'
-import Navbar from './Navbar'
-import FeaturedSection from './Podcast/FeaturedSection'
-import CategorySection from './Podcast/CategorySection'
-import TopPodcasts from './Podcast/TopPodcasts'
-import TopEpisodes from './Podcast/TopEpisodes'
-import Player from './Player'
-import Recommended from './Podcast/Recommended'
-import Categories from './Podcast/Categories'
-import Footer from './Footer'
+import Head from 'next/head';
+import Navbar from './Navbar';
+import FeaturedSection from './Podcast/FeaturedSection';
+import CategorySection from './Podcast/CategorySection';
+import TopPodcasts from './Podcast/TopPodcasts';
+import TopEpisodes from './Podcast/TopEpisodes';
+import Player from './Player';
+import Recommended from './Podcast/Recommended';
+import Categories from './Podcast/Categories';
+import Footer from './Footer';
+import { FeaturedItem, TopPodcast, Episode } from '@/app/types';
 
-export default function Index({feeds,topPodcasts,recentEpisodes,episodesRandom,categories}: any) {
+interface IndexProps {
+  feeds: FeaturedItem[];
+  topPodcasts: {
+    feeds: TopPodcast[];
+  };
+  recentEpisodes: {
+    items: Episode[];
+  };
+  episodesRandom: {
+    episodes: Episode[];
+  };
+  categories: {
+    feeds: {
+      name: string;
+    }[];
+  };
+}
+
+export default function Index({feeds,topPodcasts,recentEpisodes,episodesRandom,categories}: IndexProps) {
 
   return (
     <>

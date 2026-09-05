@@ -2,8 +2,9 @@
 import { useEpisode } from '../../app/contexts/EpisodeContext';
 import { useTranslations } from 'next-intl';
 import React, { useState, useRef, useEffect } from 'react';
+import { Episode } from '@/app/types';
 
-export default function TopEpisodes({items}: { items: any[] }) {
+export default function TopEpisodes({items}: { items: Episode[] }) {
   const t = useTranslations('home');
 //   const topEpisodes = [
 //     {
@@ -24,10 +25,11 @@ export default function TopEpisodes({items}: { items: any[] }) {
 //   ];
   const topEpisodes = items;
   const { setCurrentEpisode, setToPlay } = useEpisode();
-  const handleClick = async (item: any) => {
+  const handleClick = async (item: Episode) => {
     setCurrentEpisode(item);
     setToPlay(true);
-  };  
+};
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setCurrentEpisode(items[0]);
   }, [items]);
@@ -57,7 +59,7 @@ export default function TopEpisodes({items}: { items: any[] }) {
               </p>
               
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">{episode.podcast}</span>
+                <span className="text-sm text-gray-500">{episode.feedTitle}</span>
                 <div className="flex space-x-2">
                   <button className="text-gray-500 hover:text-gray-700">
                     <i className="far fa-heart"></i>

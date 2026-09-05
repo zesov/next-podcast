@@ -17,7 +17,7 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
   const topPodcasts = data;
   // console.log(topPodcasts);
   const { setCurrentEpisode, setToPlay } = useEpisode();
-  const handleClick = async (item: any) => {
+  const handleClick = async (item: TopPodcast) => {
     const res = await fetch(`/api/episodesByFeedId?id=${item.id}`)
     const episodes = await res.json();    
     setCurrentEpisode(episodes[0]);

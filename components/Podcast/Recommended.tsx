@@ -2,8 +2,9 @@
 import { useEpisode } from '../../app/contexts/EpisodeContext';
 import { useTranslations } from 'next-intl';
 import React, { useState, useRef, useEffect } from 'react';
+import { Episode } from '@/app/types';
 
-export default function Recommended({items}: { items: any[] }) {
+export default function Recommended({items}: { items: Episode[] }) {
   const t = useTranslations('home');
   const recommended = [
     { name: "思文,败类", author: "思文败类" },
@@ -11,10 +12,11 @@ export default function Recommended({items}: { items: any[] }) {
     { name: "知行小酒馆", author: "有知有行" }
   ];
   const { setCurrentEpisode, setToPlay } = useEpisode();
-  const handleClick = async (item: any) => {
+  const handleClick = async (item: Episode) => {
     setCurrentEpisode(item);
     setToPlay(true);
-  };  
+};
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setCurrentEpisode(items[0]);
   }, [items]);

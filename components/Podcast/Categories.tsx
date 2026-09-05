@@ -1,7 +1,7 @@
 'use client';
 import { useTranslations } from 'next-intl';
 
-export default function Categories({items}: { items: any[] }) {
+export default function Categories({items}: { items: { name: string }[] }) {
   const t = useTranslations('home');
   const categories = ["社会与文化", "商业", "教育", "健康", "休闲", "小说", "喜剧", "自我完善"];
 
