@@ -21,7 +21,7 @@ function PeertubeSearchFilters({
   const searchParams = useSearchParams();
   const router = useRouter();
   const t = useTranslations("peertube.filters");
-  
+
   const handleApplyFilters = useCallback((filters: Partial<PeerTubeFilters>) => {
     const filterParams = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -38,23 +38,11 @@ function PeertubeSearchFilters({
     router.push(`/peertube?search=${encodeURIComponent(currentSearch)}${queryString ? `&${queryString}` : ''}`);
     setIsPeertubeFiltersOpen(false);
   }, [router, searchParams, setIsPeertubeFiltersOpen]);
-  
+
   if (!isPeertubePage || !isPeertubeFiltersOpen) return null;
-  
+
   return (
-    <div
-      className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg p-3 max-h-96 overflow-y-auto"
-    >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-900">{t("title")}</span>
-        <button
-          type="button"
-          onClick={() => setIsPeertubeFiltersOpen(false)}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+    <div className="absolute top-full right-0 z-50 mt-1 min-w-250 max-w-[calc(100vw-2rem)] bg-white p-0 max-h-[80vh] overflow-y-auto">
       <PeerTubeFiltersComp
         ref={peertubeFiltersRef}
         initialFilters={{
