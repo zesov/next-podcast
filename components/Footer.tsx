@@ -32,20 +32,14 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-4">{t('follow')}</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('disclaimer')}</h3>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-300 hover:text-white">
-                <i className="fab fa-weixin text-xl"></i>
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white">
-                <i className="fab fa-weibo text-xl"></i>
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white">
-                <i className="fab fa-xiaohongshu text-xl"></i>
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white">
-                <i className="fab fa-douyin text-xl"></i>
-              </a>
+                <p className="text-gray-200 text-sm leading-relaxed">
+                    <svg className="w-4 h-4 text-amber-500 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">  
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    All content is collected from public sources. We respect copyright and will remove any infringing content immediately upon valid notice.
+                </p>
             </div>
           </div>
         </div>
