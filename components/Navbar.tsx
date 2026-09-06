@@ -34,8 +34,8 @@ export default function Navbar() {
                 { href: '/', key: 'browse', exact: true, label: t('browse') },
                 { href: '/peertube', key: 'peertube', exact: false, label: t('peertube') },
                 { href: '/live', key: 'live', exact: false, label: t('live') },
-                { href: '/ranking', key: 'ranking', exact: false, label: t('ranking') },
-                { href: '/categories', key: 'categories', exact: false, label: t('categories') }
+                // { href: '/ranking', key: 'ranking', exact: false, label: t('ranking') },
+                // { href: '/categories', key: 'categories', exact: false, label: t('categories') }
               ].map(({ href, key, exact, label }) => (
                 <Link 
                   key={key}
