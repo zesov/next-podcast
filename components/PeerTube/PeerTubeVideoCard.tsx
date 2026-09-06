@@ -64,7 +64,7 @@ export default function PeerTubeVideoCard({ video, active, onSelect }: Props) {
         {video.accountDisplayName && (
           <p className="mt-0.5 text-xs text-gray-400">
             {t("publishedBy", { name: video.accountDisplayName })}
-            {video.updatedAt && ` ${t("onDate", { date: formatDate(video.updatedAt) })}`}
+            {video.createdAt && ` ${t("onDate", { date: formatDate(video.createdAt) })}`}
           </p>
         )}
         <p className="mt-1 text-xs text-gray-500 truncate">
