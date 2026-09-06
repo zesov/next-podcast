@@ -35,9 +35,9 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4">{t('disclaimer')}</h3>
             <div className="flex space-x-4">
                 <p className="text-gray-200 text-sm leading-relaxed">
-                    <svg className="w-4 h-4 text-amber-500 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">  
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+<svg className="w-4 h-4 text-amber-500 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">  
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                     </svg>
                     All content is collected from public sources. We respect copyright and will remove any infringing content immediately upon valid notice.
                 </p>
             </div>
