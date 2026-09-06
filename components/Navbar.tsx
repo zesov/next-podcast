@@ -29,12 +29,27 @@ export default function Navbar() {
               <Podcast className="text-gray-600 text-2xl mr-2" aria-hidden="true" />
               <span className="font-semibold text-xl">{t('brand')}</span>
             </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link href="/" className="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('browse')}</Link>
-              <Link href="/peertube" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('peertube')}</Link>
-              <Link href="/live" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('live')}</Link>
-              <Link href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('ranking')}</Link>
-              <Link href="#" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">{t('categories')}</Link>
+<div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              {[ 
+                { href: '/', key: 'browse', exact: true, label: t('browse') },
+                { href: '/peertube', key: 'peertube', exact: false, label: t('peertube') },
+                { href: '/live', key: 'live', exact: false, label: t('live') },
+                { href: '/ranking', key: 'ranking', exact: false, label: t('ranking') },
+                { href: '/categories', key: 'categories', exact: false, label: t('categories') }
+              ].map(({ href, key, exact, label }) => (
+                <Link 
+                  key={key}
+                  href={href}
+                  className={`
+                    ${exact ? (pathname === href ? 'border-indigo-500' : 'border-transparent') : 
+                      (pathname?.startsWith(href) ? 'border-indigo-500' : 'border-transparent')}
+                    text-gray-900 hover:border-gray-300 hover:text-gray-700 
+                    inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium
+                  `}
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
