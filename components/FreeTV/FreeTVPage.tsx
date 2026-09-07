@@ -51,6 +51,7 @@ export default function FreeTVPage() {
           const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
           setChannels(filtered.slice(0, PAGE_SIZE));
           setHasMore(filtered.length > PAGE_SIZE);
+          setAllCategories([...new Set(cached.map(c => c.groupTitle).filter((t): t is string => Boolean(t)))].sort());
           setCacheStatus('fresh');
           setLoading(false);
           return;
@@ -58,7 +59,9 @@ export default function FreeTVPage() {
         setCacheStatus(stale ? 'stale' : 'loading');
       }
 
-      const params = new URLSearchParams({ offset: String(offset), limit: String(PAGE_SIZE) });
+      // On first load (reset=true), fetch ALL channels to cache them, then paginate locally
+      const fetchLimit = reset && offset === 0 ? 2000 : PAGE_SIZE;
+      const params = new URLSearchParams({ offset: '0', limit: String(fetchLimit) });
       if (category !== 'all') params.set('category', category);
       const res = await fetch(`/api/free-tv/channels?${params.toString()}`);
       if (!res.ok) throw new Error('fetch failed');
@@ -67,18 +70,29 @@ export default function FreeTVPage() {
       if (seq !== requestSeqRef.current) return;
 
       if (reset) {
-        if (offset === 0) {
-          const allRes = await fetch(`/api/free-tv/channels?limit=1000`);
-          const allData = await allRes.json();
-          const cats = [...new Set(allData.channels.map((c: FreeTVChannel) => c.groupTitle).filter(Boolean))].sort();
-          setAllCategories(cats as string[]);
+        // Update categories from all channels
+        const allCats = [...new Set(data.channels.map((c: FreeTVChannel) => c.groupTitle).filter((t): t is string => Boolean(t)))].sort();
+        setAllCategories(allCats as string[]);
+
+        // Cache ALL channels from first fetch
+        if (fetchLimit > PAGE_SIZE) {
+          await cacheSetChannels(data.channels);
         }
-        setChannels(data.channels);
-        await cacheSetChannels(data.channels);
+
+        // Display only first PAGE_SIZE
+        const displayChannels = data.channels.slice(offset, offset + PAGE_SIZE);
+        setChannels(displayChannels);
+        setHasMore(data.channels.length > offset + PAGE_SIZE);
       } else {
-        setChannels(prev => [...prev, ...data.channels]);
+        // For infinite scroll, we already have all channels cached, just slice more
+        const cached = await getChannels();
+        if (cached) {
+          const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
+          const displayChannels = filtered.slice(offset, offset + PAGE_SIZE);
+          setChannels(prev => [...prev, ...displayChannels]);
+          setHasMore(filtered.length > offset + PAGE_SIZE);
+        }
       }
-      setHasMore(data.hasMore);
       setCacheStatus('fresh');
     } catch (e) {
       console.error('load channels failed', e);
