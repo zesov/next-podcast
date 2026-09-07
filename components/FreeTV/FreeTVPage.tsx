@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { FreeTVChannel } from '@/lib/freeTvParser';
 import { EpgSlot } from '@/components/LiveTV/liveChannels';
@@ -92,7 +92,7 @@ export default function FreeTVPage() {
     } finally {
       if (seq === requestSeqRef.current) setLoading(false);
     }
-  }, [getChannels, setChannels: cacheSetChannels, isChannelsStale]);
+  }, [getChannels, cacheSetChannels, isChannelsStale]);
 
   useEffect(() => {
     requestSeqRef.current++;
