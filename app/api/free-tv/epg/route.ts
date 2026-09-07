@@ -28,34 +28,44 @@ async function getChannelTvgUrl(channelId: string): Promise<string | null> {
 }
 
 async function fetchEpg(tvgUrl: string): Promise<any[]> {
-  const now = Date.now();
-  const cached = epgCache.get(tvgUrl);
-  if (cached && now - cached.timestamp < EPG_CACHE_DURATION) {
-    return cached.data;
+  const urls = tvgUrl.split(',').map(u => u.trim()).filter(Boolean);
+  
+  for (const url of urls) {
+    try {
+      const now = Date.now();
+      const cached = epgCache.get(url);
+      if (cached && now - cached.timestamp < EPG_CACHE_DURATION) {
+        return cached.data;
+      }
+
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NextPodcast/1.0)' },
+      });
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      const text = await response.text();
+
+      let programs: any[] = [];
+      if (contentType.includes('xml') || text.trim().startsWith('<?xml') || text.includes('<tv>')) {
+        programs = [{ rawXml: text }];
+      } else if (contentType.includes('json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
+        programs = [{ rawJson: text }];
+      } else {
+        continue;
+      }
+
+      epgCache.set(url, { data: programs, timestamp: now });
+      return programs;
+    } catch {
+      continue;
+    }
   }
-
-  const response = await fetch(tvgUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NextPodcast/1.0)' },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch EPG: ${response.status}`);
-  }
-
-  const contentType = response.headers.get('content-type') || '';
-  const text = await response.text();
-
-  let programs: any[] = [];
-  if (contentType.includes('xml') || text.trim().startsWith('<?xml') || text.includes('<tv>')) {
-    programs = [{ rawXml: text }];
-  } else if (contentType.includes('json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
-    programs = [{ rawJson: text }];
-  } else {
-    throw new Error('Unsupported EPG format');
-  }
-
-  epgCache.set(tvgUrl, { data: programs, timestamp: now });
-  return programs;
+  
+  throw new Error('All EPG URLs failed');
 }
 
 export async function GET(request: NextRequest) {
