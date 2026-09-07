@@ -7,6 +7,7 @@ export interface FreeTVChannel {
   tvgUrl?: string;
   country?: string;
   language?: string;
+  number?: number;
 }
 
 export interface FreeTVEpgProgram {
@@ -16,6 +17,15 @@ export interface FreeTVEpgProgram {
   start: number;
   end: number;
   isLive?: boolean;
+}
+
+function hashString(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36);
 }
 
 export function parseM3U8(content: string): FreeTVChannel[] {
@@ -66,16 +76,86 @@ function parseExtinfLine(extinf: string, streamUrl: string, globalTvgUrl?: strin
     tvgUrl,
     country: attrs['tvg-country'] || undefined,
     language: attrs['tvg-language'] || undefined,
+    number: attrs['tvg-chno'] ? parseInt(attrs['tvg-chno'], 10) : undefined,
   };
 }
 
-function hashString(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
+export function parseEpgXMLWithChannels(content: string, playlistChannels: FreeTVChannel[]): FreeTVEpgProgram[] {
+  const epgChannelNames = new Map<string, string>();
+  const epgChannelIds = new Map<string, string>(); // epg channel id -> display name
+  const channelRegex = /<channel\s+id=["']([^"']+)["'][^>]*>([\s\S]*?)<\/channel>/gi;
+  let channelMatch;
+  while ((channelMatch = channelRegex.exec(content)) !== null) {
+    const [, epgChannelId, inner] = channelMatch;
+    const displayNameMatch = inner.match(/<display-name[^>]*>([^<]+)<\/display-name>/i);
+    if (displayNameMatch) {
+      epgChannelNames.set(epgChannelId, displayNameMatch[1]);
+      epgChannelIds.set(epgChannelId, displayNameMatch[1]);
+    }
   }
-  return Math.abs(hash).toString(36);
+
+  // Build lookups from playlist channels
+  const nameToChannel = new Map<string, FreeTVChannel>();
+  const idToChannel = new Map<string, FreeTVChannel>();
+  for (const ch of playlistChannels) {
+    const normalizedName = normalizeName(ch.name);
+    if (!nameToChannel.has(normalizedName)) {
+      nameToChannel.set(normalizedName, ch);
+    }
+    if (ch.id) {
+      const normalizedId = normalizeId(ch.id);
+      if (!idToChannel.has(normalizedId)) {
+        idToChannel.set(normalizedId, ch);
+      }
+    }
+  }
+
+  const programmes: FreeTVEpgProgram[] = [];
+  const programmeRegex = /<programme\s+[^>]*channel=["']([^"']+)["']\s+start=["']([^"']+)["']\s+stop=["']([^"']+)["'][^>]*>([\s\S]*?)<\/programme>/gi;
+
+  let match;
+  while ((match = programmeRegex.exec(content)) !== null) {
+    const [, epgChannelId, startStr, stopStr, inner] = match;
+    const epgDisplayName = epgChannelNames.get(epgChannelId);
+    if (!epgDisplayName) continue;
+
+    // Try multiple matching strategies:
+    // 1. Match by normalized EPG channel ID to playlist tvg-id
+    const normalizedEpgId = normalizeId(epgChannelId);
+    let playlistChannel = idToChannel.get(normalizedEpgId);
+    
+    // 2. Fallback: match by normalized display name
+    if (!playlistChannel && epgDisplayName) {
+      const normalizedEpgName = normalizeName(epgDisplayName);
+      playlistChannel = nameToChannel.get(normalizedEpgName);
+    }
+    
+    if (!playlistChannel) continue;
+
+    const titleMatch = inner.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const descMatch = inner.match(/<desc[^>]*>([^<]+)<\/desc>/i);
+
+    programmes.push({
+      channelId: playlistChannel.id,
+      title: titleMatch?.[1] || 'Unknown Program',
+      description: descMatch?.[1] || '',
+      start: parseXmltvTime(startStr),
+      end: parseXmltvTime(stopStr),
+    });
+  }
+  return programmes.sort((a, b) => a.start - b.start);
+}
+
+function normalizeId(id: string): string {
+  return id.toLowerCase().replace(/[.\s]/g, '');
+}
+
+function normalizeName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, '')
+    .replace(/[ⓈⒸⓉⓇ]/g, '');
 }
 
 export function parseEpgXML(content: string, channelId: string): FreeTVEpgProgram[] {

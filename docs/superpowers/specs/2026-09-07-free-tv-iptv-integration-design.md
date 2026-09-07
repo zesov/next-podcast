@@ -264,3 +264,12 @@ messages/
 9. ✅ Data persists in IndexedDB across browser sessions
 10. ✅ Chinese/English translations work
 11. ✅ No console errors in production build
+
+## Notes
+# channels category sort:
+1. channels favorite,
+2. channels local country,
+3. channels having No G,
+4. channels Y,
+5. channels other countries
+ 

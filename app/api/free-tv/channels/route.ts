@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const offset = Number(searchParams.get('offset') ?? 0);
-    const limit = Math.min(Number(searchParams.get('limit') ?? 48), 200);
+    const limit = Math.min(Number(searchParams.get('limit') ?? 48), 5000);
     const category = searchParams.get('category') || null;
     const search = searchParams.get('search') || null;
 

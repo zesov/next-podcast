@@ -60,7 +60,7 @@ export default function FreeTVPage() {
       }
 
       // On first load (reset=true), fetch ALL channels to cache them, then paginate locally
-      const fetchLimit = reset && offset === 0 ? 2000 : PAGE_SIZE;
+      const fetchLimit = reset && offset === 0 ? 5000 : PAGE_SIZE;
       const params = new URLSearchParams({ offset: '0', limit: String(fetchLimit) });
       if (category !== 'all') params.set('category', category);
       const res = await fetch(`/api/free-tv/channels?${params.toString()}`);
@@ -194,10 +194,191 @@ export default function FreeTVPage() {
   const currentProgram = activeEpg.find((p) => now >= p.start && now < p.end);
   const nextProgram = activeEpg.find((p) => p.start > now);
 
+  // Favorite channels state
+  const [favoriteChannelIds, setFavoriteChannelIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('freeTvFavorites');
+      if (stored) {
+        setFavoriteChannelIds(new Set(JSON.parse(stored)));
+      }
+    } catch {
+    }
+  }, []);
+
   const categories = useMemo(() => {
-    const cats = [...new Set(channels.map(c => c.groupTitle).filter(Boolean))].sort();
-    return cats as string[];
-  }, [channels]);
+    const cats = [...new Set(channels.map(c => c.groupTitle).filter(Boolean))] as string[];
+    
+    const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    const localCountry = locale.split('-')[1]?.toUpperCase() || 'US';
+    
+    const countryToCategory: Record<string, string> = {
+      'HK': 'Hong Kong',
+      'TW': 'Taiwan',
+      'CN': 'China',
+      'JP': 'Japan',
+      'KR': 'Korea',
+      'SG': 'Singapore',
+      'MY': 'Malaysia',
+      'TH': 'Thailand',
+      'VN': 'Vietnam',
+      'ID': 'Indonesia',
+      'PH': 'Philippines',
+      'US': 'USA',
+      'GB': 'UK',
+      'CA': 'Canada',
+      'AU': 'Australia',
+      'NZ': 'New Zealand',
+      'DE': 'Germany',
+      'FR': 'France',
+      'IT': 'Italy',
+      'ES': 'Spain',
+      'PT': 'Portugal',
+      'NL': 'Netherlands',
+      'BE': 'Belgium',
+      'CH': 'Switzerland',
+      'AT': 'Austria',
+      'SE': 'Sweden',
+      'NO': 'Norway',
+      'DK': 'Denmark',
+      'FI': 'Finland',
+      'PL': 'Poland',
+      'CZ': 'Czech Republic',
+      'HU': 'Hungary',
+      'RO': 'Romania',
+      'BG': 'Bulgaria',
+      'HR': 'Croatia',
+      'RS': 'Serbia',
+      'SK': 'Slovakia',
+      'SI': 'Slovenia',
+      'LT': 'Lithuania',
+      'LV': 'Latvia',
+      'EE': 'Estonia',
+      'IE': 'Ireland',
+      'GR': 'Greece',
+      'TR': 'Turkey',
+      'RU': 'Russia',
+      'UA': 'Ukraine',
+      'BY': 'Belarus',
+      'MD': 'Moldova',
+      'GE': 'Georgia',
+      'AM': 'Armenia',
+      'AZ': 'Azerbaijan',
+      'KZ': 'Kazakhstan',
+      'UZ': 'Uzbekistan',
+      'KG': 'Kyrgyzstan',
+      'TJ': 'Tajikistan',
+      'TM': 'Turkmenistan',
+      'MN': 'Mongolia',
+      'IN': 'India',
+      'PK': 'Pakistan',
+      'BD': 'Bangladesh',
+      'LK': 'Sri Lanka',
+      'NP': 'Nepal',
+      'MM': 'Myanmar',
+      'KH': 'Cambodia',
+      'LA': 'Laos',
+      'BN': 'Brunei',
+      'MO': 'Macau',
+      'IL': 'Israel',
+      'SA': 'Saudi Arabia',
+      'AE': 'United Arab Emirates',
+      'QA': 'Qatar',
+      'KW': 'Kuwait',
+      'BH': 'Bahrain',
+      'OM': 'Oman',
+      'JO': 'Jordan',
+      'LB': 'Lebanon',
+      'SY': 'Syria',
+      'IQ': 'Iraq',
+      'IR': 'Iran',
+      'AF': 'Afghanistan',
+      'ZA': 'South Africa',
+      'NG': 'Nigeria',
+      'KE': 'Kenya',
+      'EG': 'Egypt',
+      'MA': 'Morocco',
+      'DZ': 'Algeria',
+      'TN': 'Tunisia',
+      'LY': 'Libya',
+      'ET': 'Ethiopia',
+      'GH': 'Ghana',
+      'UG': 'Uganda',
+      'TZ': 'Tanzania',
+      'ZW': 'Zimbabwe',
+      'BW': 'Botswana',
+      'MU': 'Mauritius',
+      'SC': 'Seychelles',
+      'BR': 'Brazil',
+      'AR': 'Argentina',
+      'CL': 'Chile',
+      'CO': 'Colombia',
+      'PE': 'Peru',
+      'VE': 'Venezuela',
+      'EC': 'Ecuador',
+      'BO': 'Bolivia',
+      'PY': 'Paraguay',
+      'UY': 'Uruguay',
+      'CR': 'Costa Rica',
+      'PA': 'Panama',
+      'GT': 'Guatemala',
+      'SV': 'El Salvador',
+      'HN': 'Honduras',
+      'NI': 'Nicaragua',
+      'DO': 'Dominican Republic',
+      'CU': 'Cuba',
+      'JM': 'Jamaica',
+      'TT': 'Trinidad and Tobago',
+      'PR': 'Puerto Rico',
+      'MX': 'Mexico',
+    };
+    
+    const localCategory = countryToCategory[localCountry] || '';
+    
+    const favoriteCategories = new Set<string>();
+    const geoFreeCategories = new Set<string>();
+    const youtubeCategories = new Set<string>();
+    
+    for (const ch of channels) {
+      const groupTitle = ch.groupTitle;
+      if (groupTitle && favoriteChannelIds.has(ch.id)) {
+        favoriteCategories.add(groupTitle);
+      }
+      const hasG = /[ⒼⒼ]/.test(ch.name) || /[ⒼⒼ]/.test(ch.groupTitle || '');
+      if (!hasG && groupTitle) {
+        geoFreeCategories.add(groupTitle);
+      }
+      const isY = /[ⓎⓎ]/.test(ch.name) || /[ⓎⓎ]/.test(ch.groupTitle || '');
+      if (isY && groupTitle) {
+        youtubeCategories.add(groupTitle);
+      }
+    }
+    
+    return cats.sort((a, b) => {
+      const aIsFav = favoriteCategories.has(a);
+      const bIsFav = favoriteCategories.has(b);
+      if (aIsFav && !bIsFav) return -1;
+      if (!aIsFav && bIsFav) return 1;
+      
+      const aIsLocal = a === localCategory;
+      const bIsLocal = b === localCategory;
+      if (aIsLocal && !bIsLocal) return -1;
+      if (!aIsLocal && bIsLocal) return 1;
+      
+      const aIsGeoFree = geoFreeCategories.has(a);
+      const bIsGeoFree = geoFreeCategories.has(b);
+      if (aIsGeoFree && !bIsGeoFree) return -1;
+      if (!aIsGeoFree && bIsGeoFree) return 1;
+      
+      const aIsY = youtubeCategories.has(a);
+      const bIsY = youtubeCategories.has(b);
+      if (aIsY && !bIsY) return -1;
+      if (!aIsY && bIsY) return 1;
+      
+      return a.localeCompare(b);
+    });
+  }, [channels, favoriteChannelIds]);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -266,7 +447,7 @@ export default function FreeTVPage() {
           >
             {t('all')}
           </button>
-          {categories.slice(0, 12).map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
