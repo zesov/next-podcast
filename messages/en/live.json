@@ -64,6 +64,14 @@
     "loading": "Loading…",
     "scrollMore": "Scroll for more",
     "allLoaded": "All channels loaded",
-    "nextUp": "Next Up"
+    "nextUp": "Next Up",
+    "freeTv": {
+      "title": "Free-TV IPTV",
+      "subtitle": "Global free IPTV channels",
+      "source": "Source: Free-TV/IPTV",
+      "refresh": "Refresh",
+      "cacheStale": "Showing cached data. Tap to refresh.",
+      "epgSource": "EPG from {url}"
+    }
   }
 }
