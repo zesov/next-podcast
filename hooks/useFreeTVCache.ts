@@ -11,7 +11,7 @@ const DB_VERSION = 1;
 
 interface CacheState {
   db: IDBDatabase | null;
-  init: () => Promise<void>;
+  init: () => Promise<IDBDatabase>;
   getChannels: () => Promise<FreeTVChannel[] | null>;
   setChannels: (channels: FreeTVChannel[]) => Promise<void>;
   getEpg: (channelId: string) => Promise<EpgSlot[] | null>;
@@ -38,20 +38,30 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-export const useFreeTVCache = create<CacheState>((set, get) => ({
+// Module-level promise to avoid multiple initializations
+let dbPromise: Promise<IDBDatabase> | null = null;
+
+function getDB(): Promise<IDBDatabase> {
+  if (!dbPromise) {
+    dbPromise = openDB();
+  }
+  return dbPromise;
+}
+
+export const useFreeTVCache = create<CacheState>((_set, get) => ({
   db: null,
 
   init: async () => {
-    if (get().db) return;
-    const db = await openDB();
-    set({ db });
+    const db = await getDB();
+    // Update state for any components that read db directly
+    // (though we'll use getDB() directly in methods)
+    return db;
   },
 
   getChannels: async () => {
-    const { db } = get();
-    if (!db) await get().init();
+    const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db!.transaction(CHANNELS_STORE, 'readonly');
+      const tx = db.transaction(CHANNELS_STORE, 'readonly');
       const store = tx.objectStore(CHANNELS_STORE);
       const request = store.get('channels');
       request.onsuccess = () => {
@@ -67,10 +77,9 @@ export const useFreeTVCache = create<CacheState>((set, get) => ({
   },
 
   setChannels: async (channels: FreeTVChannel[]) => {
-    const { db } = get();
-    if (!db) await get().init();
+    const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db!.transaction(CHANNELS_STORE, 'readwrite');
+      const tx = db.transaction(CHANNELS_STORE, 'readwrite');
       const store = tx.objectStore(CHANNELS_STORE);
       const request = store.put({ channels, fetchedAt: Date.now() }, 'channels');
       request.onsuccess = () => resolve();
@@ -79,10 +88,9 @@ export const useFreeTVCache = create<CacheState>((set, get) => ({
   },
 
   getEpg: async (channelId: string) => {
-    const { db } = get();
-    if (!db) await get().init();
+    const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db!.transaction(EPG_STORE, 'readonly');
+      const tx = db.transaction(EPG_STORE, 'readonly');
       const store = tx.objectStore(EPG_STORE);
       const request = store.get(channelId);
       request.onsuccess = () => {
@@ -98,10 +106,9 @@ export const useFreeTVCache = create<CacheState>((set, get) => ({
   },
 
   setEpg: async (channelId: string, programs: EpgSlot[]) => {
-    const { db } = get();
-    if (!db) await get().init();
+    const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db!.transaction(EPG_STORE, 'readwrite');
+      const tx = db.transaction(EPG_STORE, 'readwrite');
       const store = tx.objectStore(EPG_STORE);
       const request = store.put({ programs, fetchedAt: Date.now() }, channelId);
       request.onsuccess = () => resolve();
@@ -110,10 +117,9 @@ export const useFreeTVCache = create<CacheState>((set, get) => ({
   },
 
   isChannelsStale: async (maxAgeMs = 3600000) => {
-    const { db } = get();
-    if (!db) await get().init();
+    const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db!.transaction(CHANNELS_STORE, 'readonly');
+      const tx = db.transaction(CHANNELS_STORE, 'readonly');
       const store = tx.objectStore(CHANNELS_STORE);
       const request = store.get('channels');
       request.onsuccess = () => {
@@ -129,10 +135,9 @@ export const useFreeTVCache = create<CacheState>((set, get) => ({
   },
 
   isEpgStale: async (channelId: string, maxAgeMs = 1800000) => {
-    const { db } = get();
-    if (!db) await get().init();
+    const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db!.transaction(EPG_STORE, 'readonly');
+      const tx = db.transaction(EPG_STORE, 'readonly');
       const store = tx.objectStore(EPG_STORE);
       const request = store.get(channelId);
       request.onsuccess = () => {
@@ -148,10 +153,9 @@ export const useFreeTVCache = create<CacheState>((set, get) => ({
   },
 
   clear: async () => {
-    const { db } = get();
-    if (!db) await get().init();
+    const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db!.transaction([CHANNELS_STORE, EPG_STORE], 'readwrite');
+      const tx = db.transaction([CHANNELS_STORE, EPG_STORE], 'readwrite');
       tx.objectStore(CHANNELS_STORE).clear();
       tx.objectStore(EPG_STORE).clear();
       tx.oncomplete = () => resolve();
@@ -160,6 +164,7 @@ export const useFreeTVCache = create<CacheState>((set, get) => ({
   },
 }));
 
+// Auto-init on client
 if (typeof window !== 'undefined') {
-  useFreeTVCache.getState().init().catch(console.error);
+  getDB().catch(console.error);
 }
