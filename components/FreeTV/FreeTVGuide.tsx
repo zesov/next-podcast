@@ -10,6 +10,8 @@ interface FreeTVGuideProps {
   epgMap: Map<string, EpgSlot[]>;
   activeId: string | null;
   onSelect: (channel: FreeTVChannel) => void;
+  favoriteIds: Set<string>;
+  onToggleFavorite: (channelId: string) => void;
 }
 
 const WINDOW_HOURS = 6;
@@ -75,7 +77,7 @@ function AiringsStrip({
   );
 }
 
-export default function FreeTVGuide({ channels, epgMap, activeId, onSelect }: FreeTVGuideProps) {
+export default function FreeTVGuide({ channels, epgMap, activeId, onSelect, favoriteIds, onToggleFavorite }: FreeTVGuideProps) {
   const t = useTranslations('live');
   const [now, setNow] = useState(() => Date.now());
 
@@ -122,6 +124,7 @@ export default function FreeTVGuide({ channels, epgMap, activeId, onSelect }: Fr
         {channels.map((channel) => {
           const epg = epgMap.get(channel.id) || [];
           const active = channel.id === activeId;
+          const isFavorite = favoriteIds.has(channel.id);
           return (
             <div
               key={channel.id}
@@ -155,6 +158,24 @@ export default function FreeTVGuide({ channels, epgMap, activeId, onSelect }: Fr
                     {t('live')}
                   </span>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(channel.id);
+                  }}
+                  className="ml-auto shrink-0 p-1.5 rounded hover:bg-gray-700 transition-colors"
+                  aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <svg
+                    className={`w-5 h-5 ${isFavorite ? 'text-yellow-400 fill-current' : 'text-gray-500'}`}
+                    viewBox="0 0 24 24"
+                    fill={isFavorite ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </button>
               </div>
 
               <div className="flex-1 relative">

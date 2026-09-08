@@ -7,7 +7,9 @@ import { EpgSlot } from '@/components/LiveTV/liveChannels';
 const DB_NAME = 'free-tv-cache';
 const CHANNELS_STORE = 'channels';
 const EPG_STORE = 'epg';
-const DB_VERSION = 1;
+const FAVORITES_STORE = 'favorites';
+const CATEGORIES_STORE = 'categories';
+const DB_VERSION = 3;
 
 interface CacheState {
   db: IDBDatabase | null;
@@ -18,6 +20,10 @@ interface CacheState {
   setEpg: (channelId: string, programs: EpgSlot[]) => Promise<void>;
   isChannelsStale: (maxAgeMs?: number) => Promise<boolean>;
   isEpgStale: (channelId: string, maxAgeMs?: number) => Promise<boolean>;
+  getFavorites: () => Promise<Set<string>>;
+  setFavorite: (channelId: string, isFavorite: boolean) => Promise<void>;
+  getCategories: () => Promise<string[] | null>;
+  setCategories: (categories: string[]) => Promise<void>;
   clear: () => Promise<void>;
 }
 
@@ -33,6 +39,12 @@ function openDB(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(EPG_STORE)) {
         db.createObjectStore(EPG_STORE);
+      }
+      if (!db.objectStoreNames.contains(FAVORITES_STORE)) {
+        db.createObjectStore(FAVORITES_STORE);
+      }
+      if (!db.objectStoreNames.contains(CATEGORIES_STORE)) {
+        db.createObjectStore(CATEGORIES_STORE);
       }
     };
   });
@@ -152,12 +164,85 @@ export const useFreeTVCache = create<CacheState>((_set, get) => ({
     });
   },
 
+  getFavorites: async () => {
+    const db = await getDB();
+    return new Promise<Set<string>>((resolve, reject) => {
+      const tx = db.transaction(FAVORITES_STORE, 'readonly');
+      const store = tx.objectStore(FAVORITES_STORE);
+      const request = store.get('favorites');
+      request.onsuccess = () => {
+        const data = request.result;
+        if (data && data.ids) {
+          resolve(new Set(data.ids as string[]));
+        } else {
+          resolve(new Set());
+        }
+      };
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  setFavorite: async (channelId: string, isFavorite: boolean) => {
+    const db = await getDB();
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(FAVORITES_STORE, 'readwrite');
+      const store = tx.objectStore(FAVORITES_STORE);
+      const getRequest = store.get('favorites');
+      getRequest.onsuccess = () => {
+        const data = getRequest.result;
+        const ids = new Set((data?.ids as string[]) || []);
+        
+        if (isFavorite) {
+          ids.add(channelId);
+        } else {
+          ids.delete(channelId);
+        }
+        
+        const putRequest = store.put({ ids: Array.from(ids) }, 'favorites');
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(putRequest.error);
+      };
+      getRequest.onerror = () => reject(getRequest.error);
+    });
+  },
+
+  getCategories: async () => {
+    const db = await getDB();
+    return new Promise<string[] | null>((resolve, reject) => {
+      const tx = db.transaction(CATEGORIES_STORE, 'readonly');
+      const store = tx.objectStore(CATEGORIES_STORE);
+      const request = store.get('categories');
+      request.onsuccess = () => {
+        const data = request.result;
+        if (data && data.list) {
+          resolve(data.list as string[]);
+        } else {
+          resolve(null);
+        }
+      };
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  setCategories: async (categories: string[]) => {
+    const db = await getDB();
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(CATEGORIES_STORE, 'readwrite');
+      const store = tx.objectStore(CATEGORIES_STORE);
+      const request = store.put({ list: categories, fetchedAt: Date.now() }, 'categories');
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
   clear: async () => {
     const db = await getDB();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction([CHANNELS_STORE, EPG_STORE], 'readwrite');
+      const tx = db.transaction([CHANNELS_STORE, EPG_STORE, FAVORITES_STORE, CATEGORIES_STORE], 'readwrite');
       tx.objectStore(CHANNELS_STORE).clear();
       tx.objectStore(EPG_STORE).clear();
+      tx.objectStore(FAVORITES_STORE).clear();
+      tx.objectStore(CATEGORIES_STORE).clear();
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });

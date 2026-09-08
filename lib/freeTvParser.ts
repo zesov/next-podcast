@@ -8,6 +8,7 @@ export interface FreeTVChannel {
   country?: string;
   language?: string;
   number?: number;
+  favorite?: boolean;
 }
 
 export interface FreeTVEpgProgram {

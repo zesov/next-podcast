@@ -8,7 +8,7 @@ import LiveTvPlayer from '@/components/LiveTV/LiveTvPlayer';
 import { FreeTVGuide } from '@/components/FreeTV';
 import { useFreeTVCache } from '@/hooks/useFreeTVCache';
 
-const PAGE_SIZE = 48;
+const PAGE_SIZE = 10;
 
 export default function FreeTVPage() {
   const t = useTranslations('live');
@@ -16,19 +16,23 @@ export default function FreeTVPage() {
   const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
   const [channels, setChannels] = useState<FreeTVChannel[]>([]);
   const [allCategories, setAllCategories] = useState<string[]>([]);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [activeEpg, setActiveEpg] = useState<EpgSlot[]>([]);
   const [activeChannel, setActiveChannel] = useState<FreeTVChannel | null>(null);
   const [epgMap, setEpgMap] = useState<Map<string, EpgSlot[]>>(new Map());
   const [now, setNow] = useState(() => Date.now());
   const [cacheStatus, setCacheStatus] = useState<'fresh' | 'stale' | 'loading'>('loading');
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [priorityLoaded, setPriorityLoaded] = useState(false);
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const requestSeqRef = useRef(0);
   const epgMapRef = useRef<Map<string, EpgSlot[]>>(new Map());
+  const loadedCountRef = useRef(0);
 
-  const { getChannels, setChannels: cacheSetChannels, getEpg, setEpg, isChannelsStale, isEpgStale } = useFreeTVCache();
+  const { getChannels, setChannels: cacheSetChannels, getEpg, setEpg, isChannelsStale, isEpgStale, getFavorites, setFavorite, getCategories, setCategories } = useFreeTVCache();
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 60_000);
@@ -38,6 +42,89 @@ export default function FreeTVPage() {
   useEffect(() => {
     epgMapRef.current = epgMap;
   }, [epgMap]);
+
+  useEffect(() => {
+    getCategories().then(cats => {
+      if (cats && cats.length > 0) {
+        setAllCategories(cats);
+      }
+      setCategoriesLoaded(true);
+    }).catch(() => setCategoriesLoaded(true));
+  }, [getCategories]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadPriority = async () => {
+      try {
+        const [cachedChannels, favoriteIds] = await Promise.all([
+          getChannels(),
+          getFavorites()
+        ]);
+        
+        if (cancelled) return;
+        
+        if (cachedChannels && cachedChannels.length > 0) {
+          const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+          const localCountry = locale.split('-')[1]?.toUpperCase() || 'US';
+          
+          const countryToCategory: Record<string, string> = {
+            'HK': 'Hong Kong', 'TW': 'Taiwan', 'CN': 'China', 'JP': 'Japan', 'KR': 'Korea',
+            'SG': 'Singapore', 'MY': 'Malaysia', 'TH': 'Thailand', 'VN': 'Vietnam', 'ID': 'Indonesia',
+            'PH': 'Philippines', 'US': 'USA', 'GB': 'UK', 'CA': 'Canada', 'AU': 'Australia',
+            'NZ': 'New Zealand', 'DE': 'Germany', 'FR': 'France', 'IT': 'Italy', 'ES': 'Spain',
+            'PT': 'Portugal', 'NL': 'Netherlands', 'BE': 'Belgium', 'CH': 'Switzerland', 'AT': 'Austria',
+            'SE': 'Sweden', 'NO': 'Norway', 'DK': 'Denmark', 'FI': 'Finland', 'PL': 'Poland',
+            'CZ': 'Czech Republic', 'HU': 'Hungary', 'RO': 'Romania', 'BG': 'Bulgaria', 'HR': 'Croatia',
+            'RS': 'Serbia', 'SK': 'Slovakia', 'SI': 'Slovenia', 'LT': 'Lithuania', 'LV': 'Latvia',
+            'EE': 'Estonia', 'IE': 'Ireland', 'GR': 'Greece', 'TR': 'Turkey', 'RU': 'Russia',
+            'UA': 'Ukraine', 'BY': 'Belarus', 'MD': 'Moldova', 'GE': 'Georgia', 'AM': 'Armenia',
+            'AZ': 'Azerbaijan', 'KZ': 'Kazakhstan', 'UZ': 'Uzbekistan', 'KG': 'Kyrgyzstan', 'TJ': 'Tajikistan',
+            'TM': 'Turkmenistan', 'MN': 'Mongolia', 'IN': 'India', 'PK': 'Pakistan', 'BD': 'Bangladesh',
+            'LK': 'Sri Lanka', 'NP': 'Nepal', 'MM': 'Myanmar', 'KH': 'Cambodia', 'LA': 'Laos',
+            'BN': 'Brunei', 'MO': 'Macau', 'IL': 'Israel', 'SA': 'Saudi Arabia', 'AE': 'UAE',
+            'QA': 'Qatar', 'KW': 'Kuwait', 'BH': 'Bahrain', 'OM': 'Oman', 'JO': 'Jordan',
+            'LB': 'Lebanon', 'SY': 'Syria', 'IQ': 'Iraq', 'IR': 'Iran', 'AF': 'Afghanistan',
+            'ZA': 'South Africa', 'NG': 'Nigeria', 'KE': 'Kenya', 'EG': 'Egypt', 'MA': 'Morocco',
+            'DZ': 'Algeria', 'TN': 'Tunisia', 'LY': 'Libya', 'ET': 'Ethiopia', 'GH': 'Ghana',
+            'UG': 'Uganda', 'TZ': 'Tanzania', 'ZW': 'Zimbabwe', 'BW': 'Botswana', 'MU': 'Mauritius',
+            'SC': 'Seychelles', 'BR': 'Brazil', 'AR': 'Argentina', 'CL': 'Chile', 'CO': 'Colombia',
+            'PE': 'Peru', 'VE': 'Venezuela', 'EC': 'Ecuador', 'BO': 'Bolivia', 'PY': 'Paraguay',
+            'UY': 'Uruguay', 'CR': 'Costa Rica', 'PA': 'Panama', 'GT': 'Guatemala', 'SV': 'El Salvador',
+            'HN': 'Honduras', 'NI': 'Nicaragua', 'DO': 'Dominican Republic', 'CU': 'Cuba', 'JM': 'Jamaica',
+            'TT': 'Trinidad and Tobago', 'PR': 'Puerto Rico', 'MX': 'Mexico',
+          };
+          
+          const localCategory = countryToCategory[localCountry] || '';
+          
+          const favoriteChannels = cachedChannels.filter(ch => favoriteIds.has(ch.id));
+          const localChannels = cachedChannels.filter(ch => 
+            ch.groupTitle === localCategory && !favoriteIds.has(ch.id)
+          );
+          const otherChannels = cachedChannels.filter(ch => 
+            !favoriteIds.has(ch.id) && ch.groupTitle !== localCategory
+          );
+          
+          const priorityChannels = [...favoriteChannels, ...localChannels, ...otherChannels];
+          
+          setChannels(priorityChannels.slice(0, PAGE_SIZE));
+          setHasMore(priorityChannels.length > PAGE_SIZE);
+          loadedCountRef.current = Math.min(priorityChannels.length, PAGE_SIZE);
+          setFavoriteChannelIds(favoriteIds);
+          setPriorityLoaded(true);
+          setCacheStatus('fresh');
+        } else {
+          loadChannels(0, 'all', true);
+          setPriorityLoaded(true);
+        }
+      } catch (e) {
+        console.error('load priority channels failed', e);
+        setPriorityLoaded(true);
+      }
+    };
+    
+    loadPriority();
+    return () => { cancelled = true; };
+  }, [getChannels, getFavorites]);
 
   const loadChannels = useCallback(async (offset: number, category: string | 'all', reset: boolean) => {
     const seq = ++requestSeqRef.current;
@@ -73,6 +160,7 @@ export default function FreeTVPage() {
         // Update categories from all channels
         const allCats = [...new Set(data.channels.map((c: FreeTVChannel) => c.groupTitle).filter((t): t is string => Boolean(t)))].sort();
         setAllCategories(allCats as string[]);
+        await setCategories(allCats);
 
         // Cache ALL channels from first fetch
         if (fetchLimit > PAGE_SIZE) {
@@ -90,6 +178,7 @@ export default function FreeTVPage() {
           const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
           const displayChannels = filtered.slice(offset, offset + PAGE_SIZE);
           setChannels(prev => [...prev, ...displayChannels]);
+          loadedCountRef.current = offset + displayChannels.length;
           setHasMore(filtered.length > offset + PAGE_SIZE);
         }
       }
@@ -109,12 +198,18 @@ export default function FreeTVPage() {
   }, [getChannels, cacheSetChannels, isChannelsStale]);
 
   useEffect(() => {
-    requestSeqRef.current++;
-    setChannels([]);
-    setHasMore(true);
-    setEpgMap(new Map());
-    loadChannels(0, activeCategory, true);
-  }, [activeCategory, loadChannels]);
+    if (activeCategory === 'all') return;
+    
+    const filterFromCache = async () => {
+      const cached = await getChannels();
+      if (cached && cached.length > 0) {
+        const filtered = cached.filter(c => c.groupTitle === activeCategory);
+        setChannels(filtered.slice(0, PAGE_SIZE));
+        setHasMore(filtered.length > PAGE_SIZE);
+      }
+    };
+    filterFromCache();
+  }, [activeCategory, getChannels]);
 
   const handleSelect = useCallback((channel: FreeTVChannel) => {
     setActiveChannel(channel);
@@ -127,14 +222,14 @@ export default function FreeTVPage() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          loadChannels(channels.length, activeCategory, false);
+          loadChannels(loadedCountRef.current, activeCategory, false);
         }
       },
       { rootMargin: '200px' }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, loading, channels.length, activeCategory, loadChannels]);
+  }, [hasMore, loading, activeCategory, loadChannels]);
 
   useEffect(() => {
     if (channels.length === 0) return;
@@ -194,144 +289,59 @@ export default function FreeTVPage() {
   const currentProgram = activeEpg.find((p) => now >= p.start && now < p.end);
   const nextProgram = activeEpg.find((p) => p.start > now);
 
-  // Favorite channels state
   const [favoriteChannelIds, setFavoriteChannelIds] = useState<Set<string>>(new Set());
 
+  const toggleFavorite = useCallback(async (channelId: string) => {
+    const isFav = favoriteChannelIds.has(channelId);
+    const newFavs = new Set(favoriteChannelIds);
+    if (isFav) newFavs.delete(channelId); else newFavs.add(channelId);
+    setFavoriteChannelIds(newFavs);
+    await setFavorite(channelId, !isFav);
+  }, [favoriteChannelIds, setFavorite]);
+
+  const channelsWithFavorites = useMemo(() => {
+    return channels.map(ch => ({ ...ch, favorite: favoriteChannelIds.has(ch.id) }));
+  }, [channels, favoriteChannelIds]);
+
+  const [allCachedChannels, setAllCachedChannels] = useState<FreeTVChannel[]>([]);
+  
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('freeTvFavorites');
-      if (stored) {
-        setFavoriteChannelIds(new Set(JSON.parse(stored)));
-      }
-    } catch {
-    }
-  }, []);
+    getChannels().then(cached => {
+      if (cached) setAllCachedChannels(cached);
+    });
+  }, [getChannels]);
 
   const categories = useMemo(() => {
-    const cats = [...new Set(channels.map(c => c.groupTitle).filter(Boolean))] as string[];
+    const cats = allCategories.length > 0 ? allCategories : [...new Set(channels.map(c => c.groupTitle).filter(Boolean))] as string[];
     
     const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
     const localCountry = locale.split('-')[1]?.toUpperCase() || 'US';
     
     const countryToCategory: Record<string, string> = {
-      'HK': 'Hong Kong',
-      'TW': 'Taiwan',
-      'CN': 'China',
-      'JP': 'Japan',
-      'KR': 'Korea',
-      'SG': 'Singapore',
-      'MY': 'Malaysia',
-      'TH': 'Thailand',
-      'VN': 'Vietnam',
-      'ID': 'Indonesia',
-      'PH': 'Philippines',
-      'US': 'USA',
-      'GB': 'UK',
-      'CA': 'Canada',
-      'AU': 'Australia',
-      'NZ': 'New Zealand',
-      'DE': 'Germany',
-      'FR': 'France',
-      'IT': 'Italy',
-      'ES': 'Spain',
-      'PT': 'Portugal',
-      'NL': 'Netherlands',
-      'BE': 'Belgium',
-      'CH': 'Switzerland',
-      'AT': 'Austria',
-      'SE': 'Sweden',
-      'NO': 'Norway',
-      'DK': 'Denmark',
-      'FI': 'Finland',
-      'PL': 'Poland',
-      'CZ': 'Czech Republic',
-      'HU': 'Hungary',
-      'RO': 'Romania',
-      'BG': 'Bulgaria',
-      'HR': 'Croatia',
-      'RS': 'Serbia',
-      'SK': 'Slovakia',
-      'SI': 'Slovenia',
-      'LT': 'Lithuania',
-      'LV': 'Latvia',
-      'EE': 'Estonia',
-      'IE': 'Ireland',
-      'GR': 'Greece',
-      'TR': 'Turkey',
-      'RU': 'Russia',
-      'UA': 'Ukraine',
-      'BY': 'Belarus',
-      'MD': 'Moldova',
-      'GE': 'Georgia',
-      'AM': 'Armenia',
-      'AZ': 'Azerbaijan',
-      'KZ': 'Kazakhstan',
-      'UZ': 'Uzbekistan',
-      'KG': 'Kyrgyzstan',
-      'TJ': 'Tajikistan',
-      'TM': 'Turkmenistan',
-      'MN': 'Mongolia',
-      'IN': 'India',
-      'PK': 'Pakistan',
-      'BD': 'Bangladesh',
-      'LK': 'Sri Lanka',
-      'NP': 'Nepal',
-      'MM': 'Myanmar',
-      'KH': 'Cambodia',
-      'LA': 'Laos',
-      'BN': 'Brunei',
-      'MO': 'Macau',
-      'IL': 'Israel',
-      'SA': 'Saudi Arabia',
-      'AE': 'United Arab Emirates',
-      'QA': 'Qatar',
-      'KW': 'Kuwait',
-      'BH': 'Bahrain',
-      'OM': 'Oman',
-      'JO': 'Jordan',
-      'LB': 'Lebanon',
-      'SY': 'Syria',
-      'IQ': 'Iraq',
-      'IR': 'Iran',
-      'AF': 'Afghanistan',
-      'ZA': 'South Africa',
-      'NG': 'Nigeria',
-      'KE': 'Kenya',
-      'EG': 'Egypt',
-      'MA': 'Morocco',
-      'DZ': 'Algeria',
-      'TN': 'Tunisia',
-      'LY': 'Libya',
-      'ET': 'Ethiopia',
-      'GH': 'Ghana',
-      'UG': 'Uganda',
-      'TZ': 'Tanzania',
-      'ZW': 'Zimbabwe',
-      'BW': 'Botswana',
-      'MU': 'Mauritius',
-      'SC': 'Seychelles',
-      'BR': 'Brazil',
-      'AR': 'Argentina',
-      'CL': 'Chile',
-      'CO': 'Colombia',
-      'PE': 'Peru',
-      'VE': 'Venezuela',
-      'EC': 'Ecuador',
-      'BO': 'Bolivia',
-      'PY': 'Paraguay',
-      'UY': 'Uruguay',
-      'CR': 'Costa Rica',
-      'PA': 'Panama',
-      'GT': 'Guatemala',
-      'SV': 'El Salvador',
-      'HN': 'Honduras',
-      'NI': 'Nicaragua',
-      'DO': 'Dominican Republic',
-      'CU': 'Cuba',
-      'JM': 'Jamaica',
-      'TT': 'Trinidad and Tobago',
-      'PR': 'Puerto Rico',
-      'MX': 'Mexico',
+      'HK': 'Hong Kong', 'TW': 'Taiwan', 'CN': 'China', 'JP': 'Japan', 'KR': 'Korea',
+      'SG': 'Singapore', 'MY': 'Malaysia', 'TH': 'Thailand', 'VN': 'Vietnam', 'ID': 'Indonesia',
+      'PH': 'Philippines', 'US': 'USA', 'GB': 'UK', 'CA': 'Canada', 'AU': 'Australia',
+      'NZ': 'New Zealand', 'DE': 'Germany', 'FR': 'France', 'IT': 'Italy', 'ES': 'Spain',
+      'PT': 'Portugal', 'NL': 'Netherlands', 'BE': 'Belgium', 'CH': 'Switzerland', 'AT': 'Austria',
+      'SE': 'Sweden', 'NO': 'Norway', 'DK': 'Denmark', 'FI': 'Finland', 'PL': 'Poland',
+      'CZ': 'Czech Republic', 'HU': 'Hungary', 'RO': 'Romania', 'BG': 'Bulgaria', 'HR': 'Croatia',
+      'RS': 'Serbia', 'SK': 'Slovakia', 'SI': 'Slovenia', 'LT': 'Lithuania', 'LV': 'Latvia',
+      'EE': 'Estonia', 'IE': 'Ireland', 'GR': 'Greece', 'TR': 'Turkey', 'RU': 'Russia',
+      'UA': 'Ukraine', 'BY': 'Belarus', 'MD': 'Moldova', 'GE': 'Georgia', 'AM': 'Armenia',
+      'AZ': 'Azerbaijan', 'KZ': 'Kazakhstan', 'UZ': 'Uzbekistan', 'KG': 'Kyrgyzstan', 'TJ': 'Tajikistan',
+      'TM': 'Turkmenistan', 'MN': 'Mongolia', 'IN': 'India', 'PK': 'Pakistan', 'BD': 'Bangladesh',
+      'LK': 'Sri Lanka', 'NP': 'Nepal', 'MM': 'Myanmar', 'KH': 'Cambodia', 'LA': 'Laos',
+      'BN': 'Brunei', 'MO': 'Macau', 'IL': 'Israel', 'SA': 'Saudi Arabia', 'AE': 'UAE',
+      'QA': 'Qatar', 'KW': 'Kuwait', 'BH': 'Bahrain', 'OM': 'Oman', 'JO': 'Jordan',
+      'LB': 'Lebanon', 'SY': 'Syria', 'IQ': 'Iraq', 'IR': 'Iran', 'AF': 'Afghanistan',
+      'ZA': 'South Africa', 'NG': 'Nigeria', 'KE': 'Kenya', 'EG': 'Egypt', 'MA': 'Morocco',
+      'DZ': 'Algeria', 'TN': 'Tunisia', 'LY': 'Libya', 'ET': 'Ethiopia', 'GH': 'Ghana',
+      'UG': 'Uganda', 'TZ': 'Tanzania', 'ZW': 'Zimbabwe', 'BW': 'Botswana', 'MU': 'Mauritius',
+      'SC': 'Seychelles', 'BR': 'Brazil', 'AR': 'Argentina', 'CL': 'Chile', 'CO': 'Colombia',
+      'PE': 'Peru', 'VE': 'Venezuela', 'EC': 'Ecuador', 'BO': 'Bolivia', 'PY': 'Paraguay',
+      'UY': 'Uruguay', 'CR': 'Costa Rica', 'PA': 'Panama', 'GT': 'Guatemala', 'SV': 'El Salvador',
+      'HN': 'Honduras', 'NI': 'Nicaragua', 'DO': 'Dominican Republic', 'CU': 'Cuba', 'JM': 'Jamaica',
+      'TT': 'Trinidad and Tobago', 'PR': 'Puerto Rico', 'MX': 'Mexico',
     };
     
     const localCategory = countryToCategory[localCountry] || '';
@@ -340,7 +350,7 @@ export default function FreeTVPage() {
     const geoFreeCategories = new Set<string>();
     const youtubeCategories = new Set<string>();
     
-    for (const ch of channels) {
+    for (const ch of allCachedChannels) {
       const groupTitle = ch.groupTitle;
       if (groupTitle && favoriteChannelIds.has(ch.id)) {
         favoriteCategories.add(groupTitle);
@@ -378,7 +388,7 @@ export default function FreeTVPage() {
       
       return a.localeCompare(b);
     });
-  }, [channels, favoriteChannelIds]);
+  }, [allCategories, channels, allCachedChannels, favoriteChannelIds]);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -447,7 +457,7 @@ export default function FreeTVPage() {
           >
             {t('all')}
           </button>
-          {categories.map((cat) => (
+          {categories.slice(0, categoriesExpanded ? undefined : 10).map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
@@ -460,6 +470,14 @@ export default function FreeTVPage() {
               {cat}
             </button>
           ))}
+          {categories.length > 10 && (
+            <button
+              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+              className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
+            >
+              {categoriesExpanded ? t('collapse') : `${t('more')} (+${categories.length - 10})`}
+            </button>
+          )}
         </div>
 
         {cacheStatus === 'stale' && (
@@ -481,6 +499,8 @@ export default function FreeTVPage() {
               epgMap={epgMap}
               activeId={effectiveChannel?.id ?? null}
               onSelect={handleSelect}
+              favoriteIds={favoriteChannelIds}
+              onToggleFavorite={toggleFavorite}
             />
             <div ref={loadMoreRef} className="py-4 text-center text-sm text-gray-500">
               {loading ? t('loading') : hasMore ? t('scrollMore') : t('allLoaded')}
