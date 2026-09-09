@@ -19,6 +19,13 @@
     "nowPlaying": "● On air",
     "epgEmpty": "Select a channel to view the program guide",
     "unsupported": "This browser does not support HLS playback. Please use the latest Chrome / Edge / Safari.",
+    "networkError": "Network error. The stream may be offline or blocked.",
+    "mediaError": "Media decoding error. The stream format may be unsupported.",
+    "decodeError": "Video decoding failed. Try a different browser.",
+    "aborted": "Playback was aborted.",
+    "muxError": "Stream format error (mux).",
+    "hlsError": "HLS playback error.",
+    "playbackError": "Playback error. The stream may be unavailable.",
     "categoryName": "{name} Channels",
     "categories": {
       "Action & Adventure": "Action & Adventure",

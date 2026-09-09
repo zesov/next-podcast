@@ -19,6 +19,13 @@
     "nowPlaying": "● 播放中",
     "epgEmpty": "选择频道后查看节目指南",
     "unsupported": "此浏览器不支持 HLS 播放，请使用最新版 Chrome / Edge / Safari。",
+    "networkError": "网络错误。直播流可能已下线或被屏蔽。",
+    "mediaError": "媒体解码错误。直播流格式可能不受支持。",
+    "decodeError": "视频解码失败，请尝试其他浏览器。",
+    "aborted": "播放被中止。",
+    "muxError": "流封装格式错误 (mux)。",
+    "hlsError": "HLS 播放错误。",
+    "playbackError": "播放错误。直播流可能不可用。",
     "categoryName": "{name}頻道",
     "categories": {
       "Action & Adventure": "动作与冒险",
