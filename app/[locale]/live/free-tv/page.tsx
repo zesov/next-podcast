@@ -2,6 +2,7 @@ import FreeTVPage from '@/components/FreeTV/FreeTVPage';
 import Navbar from '@/components/Navbar';
 import { setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
+import { Suspense } from 'react';
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -19,7 +20,9 @@ export default async function FreeTVPageRoute({ params }: Props) {
   return (
     <>
       <Navbar />
-      <FreeTVPage />
+      <Suspense fallback={<div className="min-h-screen bg-gray-950 flex items-center justify-center"><p className="text-gray-400">Loading...</p></div>}>
+        <FreeTVPage />
+      </Suspense>
     </>
   );
 }

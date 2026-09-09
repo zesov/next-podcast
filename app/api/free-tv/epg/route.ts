@@ -1,35 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseM3U8, parseEpgXML, parseEpgJSON, parseEpgXMLWithChannels, FreeTVChannel } from '@/lib/freeTvParser';
+import { parseM3U8, parseEpgJSON, parseEpgXMLWithChannels, prioritizeEpgUrls, FreeTVChannel } from '@/lib/freeTvParser';
 
 const PLAYLIST_URL = 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8';
-const EPG_CACHE_DURATION = 5 * 60 * 1000;
+const EPG_CACHE_DURATION = 15 * 60 * 1000;
 
 const epgCache = new Map<string, { data: any; timestamp: number }>();
 
 let channelsCache: { data: FreeTVChannel[]; timestamp: number } | null = null;
 
-async function getChannelTvgUrl(channelId: string): Promise<string | null> {
+async function getPlaylistChannels(): Promise<FreeTVChannel[]> {
   const now = Date.now();
-  let channels: FreeTVChannel[];
-
   if (channelsCache && now - channelsCache.timestamp < 15 * 60 * 1000) {
-    channels = channelsCache.data;
-  } else {
-    const response = await fetch(PLAYLIST_URL, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NextPodcast/1.0)' },
-    });
-    const text = await response.text();
-    channels = parseM3U8(text);
-    channelsCache = { data: channels, timestamp: now };
+    return channelsCache.data;
   }
-
-  const channel = channels.find(c => c.id === channelId);
-  return channel?.tvgUrl || null;
+  const response = await fetch(PLAYLIST_URL, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NextPodcast/1.0)' },
+  });
+  const text = await response.text();
+  const channels = parseM3U8(text);
+  channelsCache = { data: channels, timestamp: now };
+  return channels;
 }
 
-async function fetchEpg(tvgUrl: string): Promise<any[]> {
-  const urls = tvgUrl.split(',').map(u => u.trim()).filter(Boolean);
-  
+async function fetchEpg(urls: string[]): Promise<any[]> {
   for (const url of urls) {
     try {
       const now = Date.now();
@@ -96,32 +89,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'channelId required' }, { status: 400 });
     }
 
-    const tvgUrl = await getChannelTvgUrl(channelId);
-    if (!tvgUrl) {
+    const allChannels = await getPlaylistChannels();
+    const channel = allChannels.find(c => c.id === channelId);
+    if (!channel?.tvgUrl) {
       return NextResponse.json([], { status: 200 });
     }
 
-    // Fetch all playlist channels for name matching
-    let allChannels: FreeTVChannel[];
-    if (channelsCache && Date.now() - channelsCache.timestamp < 15 * 60 * 1000) {
-      allChannels = channelsCache.data;
-    } else {
-      const response = await fetch(PLAYLIST_URL, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NextPodcast/1.0)' },
-      });
-      const text = await response.text();
-      allChannels = parseM3U8(text);
-      channelsCache = { data: allChannels, timestamp: Date.now() };
-    }
-
-    const epgData = await fetchEpg(tvgUrl);
+    // 优先拉取 channel 所属国家的 EPG 档案（如 HK channel → epg_ripper_HK1.xml.gz）
+    const prioritizedUrls = prioritizeEpgUrls(channel.tvgUrl, channel.country);
+    const epgData = await fetchEpg(prioritizedUrls);
     let programs: any[] = [];
 
     for (const item of epgData) {
       if (item.rawXml) {
         const matched = parseEpgXMLWithChannels(item.rawXml, allChannels);
-        console.log(`EPG matched ${matched.length} programmes for ${channelId}`);
-        programs.push(...matched);
+        // parseEpgXMLWithChannels 会返回 XML 里匹配到的所有频道节目，必须按请求的 channelId 过滤
+        const forThisChannel = matched.filter(p => p.channelId === channelId);
+        console.log(`EPG matched ${forThisChannel.length} programmes for ${channelId}`);
+        programs.push(...forThisChannel);
       } else if (item.rawJson) {
         programs.push(...parseEpgJSON(item.rawJson, channelId));
       }

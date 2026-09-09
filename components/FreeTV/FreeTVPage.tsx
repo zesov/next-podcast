@@ -1,17 +1,20 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { FreeTVChannel } from '@/lib/freeTvParser';
-import { EpgSlot } from '@/components/LiveTV/liveChannels';
-import LiveTvPlayer from '@/components/LiveTV/LiveTvPlayer';
-import { FreeTVGuide } from '@/components/FreeTV';
-import { useFreeTVCache } from '@/hooks/useFreeTVCache';
+  import { useTranslations } from 'next-intl';
+  import { useSearchParams, usePathname } from 'next/navigation';
+  import { FreeTVChannel, searchFreeTVChannels } from '@/lib/freeTvParser';
+  import { EpgSlot } from '@/components/LiveTV/liveChannels';
+  import LiveTvPlayer from '@/components/LiveTV/LiveTvPlayer';
+  import { FreeTVGuide } from '@/components/FreeTV';
+  import { useFreeTVCache } from '@/hooks/useFreeTVCache';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 3;
 
 export default function FreeTVPage() {
   const t = useTranslations('live');
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
   const [channels, setChannels] = useState<FreeTVChannel[]>([]);
@@ -26,6 +29,7 @@ export default function FreeTVPage() {
   const [cacheStatus, setCacheStatus] = useState<'fresh' | 'stale' | 'loading'>('loading');
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [priorityLoaded, setPriorityLoaded] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const requestSeqRef = useRef(0);
@@ -51,6 +55,95 @@ export default function FreeTVPage() {
       setCategoriesLoaded(true);
     }).catch(() => setCategoriesLoaded(true));
   }, [getCategories]);
+
+  // Sync searchTerm with URL search params
+  useEffect(() => {
+    const term = searchParams.get('search') || '';
+    if (term !== searchTerm) {
+      setSearchTerm(term);
+    }
+  }, [searchParams, searchTerm]);
+
+  const loadChannels = useCallback(async (offset: number, category: string | 'all', reset: boolean, searchTerm: string) => {
+    const seq = ++requestSeqRef.current;
+    setLoading(true);
+
+    try {
+      if (offset === 0 && reset) {
+        const cached = await getChannels();
+        const stale = await isChannelsStale();
+        if (cached && !stale) {
+          const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
+          const searchFiltered = searchTerm
+            ? searchFreeTVChannels(filtered, searchTerm)
+            : filtered;
+          setChannels(searchFiltered.slice(0, PAGE_SIZE));
+          setHasMore(searchFiltered.length > PAGE_SIZE);
+          setAllCategories([...new Set(cached.map(c => c.groupTitle).filter((t): t is string => Boolean(t)))].sort());
+          setCacheStatus('fresh');
+          setLoading(false);
+          return;
+        }
+        setCacheStatus(stale ? 'stale' : 'loading');
+      }
+
+const fetchLimit = reset && offset === 0 ? 5000 : PAGE_SIZE;
+      const params = new URLSearchParams({ offset: '0', limit: String(fetchLimit) });
+      if (category !== 'all') params.set('category', category);
+      if (searchTerm) params.set('search', searchTerm);
+      const res = await fetch(`/api/free-tv/channels?${params.toString()}`);
+      if (!res.ok) throw new Error('fetch failed');
+      const data = (await res.json()) as { channels: FreeTVChannel[]; total: number; hasMore: boolean };
+
+      if (seq !== requestSeqRef.current) return;
+
+      if (reset) {
+const allCats = [...new Set(data.channels.map((c: FreeTVChannel) => c.groupTitle).filter((t): t is string => Boolean(t)))].sort();
+        setAllCategories(allCats as string[]);
+        await setCategories(allCats);
+
+        if (fetchLimit > PAGE_SIZE) {
+          await cacheSetChannels(data.channels);
+        }
+
+        const displayChannels = data.channels.slice(offset, offset + PAGE_SIZE);
+        setChannels(displayChannels);
+        setHasMore(data.channels.length > offset + PAGE_SIZE);
+      } else {
+        const cached = await getChannels();
+        if (cached) {
+          const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
+          const searchFiltered = searchTerm
+            ? searchFreeTVChannels(filtered, searchTerm)
+            : filtered;
+          const displayChannels = searchFiltered.slice(offset, offset + PAGE_SIZE);
+          setChannels(prev => [...prev, ...displayChannels]);
+          loadedCountRef.current = offset + displayChannels.length;
+          setHasMore(searchFiltered.length > offset + PAGE_SIZE);
+        }
+      }
+      setCacheStatus('fresh');
+    } catch (e) {
+      console.error('load channels failed', e);
+      const cached = await getChannels();
+      if (cached && offset === 0) {
+        const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
+        const searchFiltered = searchTerm
+          ? searchFreeTVChannels(filtered, searchTerm)
+          : filtered;
+        setChannels(searchFiltered.slice(0, PAGE_SIZE));
+        setHasMore(searchFiltered.length > PAGE_SIZE);
+        setCacheStatus('stale');
+      }
+    } finally {
+      if (seq === requestSeqRef.current) setLoading(false);
+    }
+  }, [getChannels, cacheSetChannels, isChannelsStale]);
+
+  // Reload channels when active category or search term changes
+  useEffect(() => {
+    loadChannels(0, activeCategory, true, searchTerm);
+  }, [activeCategory, searchTerm, loadChannels]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,15 +198,18 @@ export default function FreeTVPage() {
           );
           
           const priorityChannels = [...favoriteChannels, ...localChannels, ...otherChannels];
-          
-          setChannels(priorityChannels.slice(0, PAGE_SIZE));
-          setHasMore(priorityChannels.length > PAGE_SIZE);
-          loadedCountRef.current = Math.min(priorityChannels.length, PAGE_SIZE);
+          const searchFilteredPriority = searchTerm
+            ? searchFreeTVChannels(priorityChannels, searchTerm)
+            : priorityChannels;
+
+          setChannels(searchFilteredPriority.slice(0, PAGE_SIZE));
+          setHasMore(searchFilteredPriority.length > PAGE_SIZE);
+          loadedCountRef.current = Math.min(searchFilteredPriority.length, PAGE_SIZE);
           setFavoriteChannelIds(favoriteIds);
           setPriorityLoaded(true);
           setCacheStatus('fresh');
         } else {
-          loadChannels(0, 'all', true);
+          loadChannels(0, 'all', true, searchTerm);
           setPriorityLoaded(true);
         }
       } catch (e) {
@@ -124,78 +220,7 @@ export default function FreeTVPage() {
     
     loadPriority();
     return () => { cancelled = true; };
-  }, [getChannels, getFavorites]);
-
-  const loadChannels = useCallback(async (offset: number, category: string | 'all', reset: boolean) => {
-    const seq = ++requestSeqRef.current;
-    setLoading(true);
-
-    try {
-      if (offset === 0 && reset) {
-        const cached = await getChannels();
-        const stale = await isChannelsStale();
-        if (cached && !stale) {
-          const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
-          setChannels(filtered.slice(0, PAGE_SIZE));
-          setHasMore(filtered.length > PAGE_SIZE);
-          setAllCategories([...new Set(cached.map(c => c.groupTitle).filter((t): t is string => Boolean(t)))].sort());
-          setCacheStatus('fresh');
-          setLoading(false);
-          return;
-        }
-        setCacheStatus(stale ? 'stale' : 'loading');
-      }
-
-      // On first load (reset=true), fetch ALL channels to cache them, then paginate locally
-      const fetchLimit = reset && offset === 0 ? 5000 : PAGE_SIZE;
-      const params = new URLSearchParams({ offset: '0', limit: String(fetchLimit) });
-      if (category !== 'all') params.set('category', category);
-      const res = await fetch(`/api/free-tv/channels?${params.toString()}`);
-      if (!res.ok) throw new Error('fetch failed');
-      const data = (await res.json()) as { channels: FreeTVChannel[]; total: number; hasMore: boolean };
-
-      if (seq !== requestSeqRef.current) return;
-
-      if (reset) {
-        // Update categories from all channels
-        const allCats = [...new Set(data.channels.map((c: FreeTVChannel) => c.groupTitle).filter((t): t is string => Boolean(t)))].sort();
-        setAllCategories(allCats as string[]);
-        await setCategories(allCats);
-
-        // Cache ALL channels from first fetch
-        if (fetchLimit > PAGE_SIZE) {
-          await cacheSetChannels(data.channels);
-        }
-
-        // Display only first PAGE_SIZE
-        const displayChannels = data.channels.slice(offset, offset + PAGE_SIZE);
-        setChannels(displayChannels);
-        setHasMore(data.channels.length > offset + PAGE_SIZE);
-      } else {
-        // For infinite scroll, we already have all channels cached, just slice more
-        const cached = await getChannels();
-        if (cached) {
-          const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
-          const displayChannels = filtered.slice(offset, offset + PAGE_SIZE);
-          setChannels(prev => [...prev, ...displayChannels]);
-          loadedCountRef.current = offset + displayChannels.length;
-          setHasMore(filtered.length > offset + PAGE_SIZE);
-        }
-      }
-      setCacheStatus('fresh');
-    } catch (e) {
-      console.error('load channels failed', e);
-      const cached = await getChannels();
-      if (cached && offset === 0) {
-        const filtered = category === 'all' ? cached : cached.filter(c => c.groupTitle === category);
-        setChannels(filtered.slice(0, PAGE_SIZE));
-        setHasMore(filtered.length > PAGE_SIZE);
-        setCacheStatus('stale');
-      }
-    } finally {
-      if (seq === requestSeqRef.current) setLoading(false);
-    }
-  }, [getChannels, cacheSetChannels, isChannelsStale]);
+  }, [getChannels, getFavorites, searchTerm]);
 
   useEffect(() => {
     if (activeCategory === 'all') return;
@@ -215,21 +240,21 @@ export default function FreeTVPage() {
     setActiveChannel(channel);
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     const sentinel = loadMoreRef.current;
     if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          loadChannels(loadedCountRef.current, activeCategory, false);
+          loadChannels(loadedCountRef.current, activeCategory, false, searchTerm);
         }
       },
       { rootMargin: '200px' }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, loading, activeCategory, loadChannels]);
+  }, [hasMore, loading, activeCategory, loadChannels, searchTerm]);
 
   useEffect(() => {
     if (channels.length === 0) return;
@@ -298,10 +323,6 @@ export default function FreeTVPage() {
     setFavoriteChannelIds(newFavs);
     await setFavorite(channelId, !isFav);
   }, [favoriteChannelIds, setFavorite]);
-
-  const channelsWithFavorites = useMemo(() => {
-    return channels.map(ch => ({ ...ch, favorite: favoriteChannelIds.has(ch.id) }));
-  }, [channels, favoriteChannelIds]);
 
   const [allCachedChannels, setAllCachedChannels] = useState<FreeTVChannel[]>([]);
   
@@ -457,9 +478,9 @@ export default function FreeTVPage() {
           >
             {t('all')}
           </button>
-          {categories.slice(0, categoriesExpanded ? undefined : 10).map((cat) => (
+          {categories.slice(0, categoriesExpanded ? undefined : 10).map((cat, idx) => (
             <button
-              key={cat}
+              key={`${cat}-${idx}`}
               onClick={() => setActiveCategory(cat)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                 activeCategory === cat
@@ -484,7 +505,7 @@ export default function FreeTVPage() {
           <div className="mb-4 px-4 py-2 bg-yellow-900/30 border border-yellow-800 rounded-lg text-yellow-300 text-sm flex items-center justify-between">
             <span>{t('freeTv.cacheStale')}</span>
             <button
-              onClick={() => loadChannels(0, activeCategory, true)}
+              onClick={() => loadChannels(0, activeCategory, true, searchTerm)}
               className="px-3 py-1 text-xs bg-yellow-600 hover:bg-yellow-500 rounded text-white"
             >
               {t('freeTv.refresh')}

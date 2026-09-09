@@ -29,11 +29,35 @@ function hashString(str: string): string {
   return Math.abs(hash).toString(36);
 }
 
+// epgshare01 档案命名与 ISO 国家代码的别名对照（如英国档案叫 UK1 而非 GB1）
+const EPG_COUNTRY_ALIASES: Record<string, string[]> = {
+  GB: ['GB', 'UK'],
+};
+
+// 把这些文件从候选列表剔除：ALL_SOURCES 解压后超过 Node 字符串上限会导致请求失败
+const SKIP_EPG_FILE_TOKENS = ['ALL_SOURCES'];
+
+// 把国家代码匹配的 EPG URL 排到前面（如 HK channel 优先拉 epg_ripper_HK1.xml.gz），
+// 避免每次都先拉到阿尔巴尼亚（AL1）等不相关国家的档案。
+export function prioritizeEpgUrls(tvgUrl: string | undefined, country?: string): string[] {
+  const urls = (tvgUrl || '')
+    .split(',')
+    .map((u) => u.trim())
+    .filter(Boolean)
+    .filter((u) => !SKIP_EPG_FILE_TOKENS.some((t) => u.toUpperCase().includes(t)));
+  if (!country || urls.length <= 1) return urls;
+  const cc = country.trim().toUpperCase();
+  const candidates = [cc, ...(EPG_COUNTRY_ALIASES[cc] || [])];
+  const isMatch = (u: string) => candidates.some((c) => u.toUpperCase().includes(`_${c}`));
+  return [...urls.filter(isMatch), ...urls.filter((u) => !isMatch(u))];
+}
+
 export function parseM3U8(content: string): FreeTVChannel[] {
   const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
   const channels: FreeTVChannel[] = [];
   let currentExtinf: string | null = null;
   let globalTvgUrl: string | undefined;
+  const idCounter = new Map<string, number>();
 
   const extm3uLine = lines.find(l => l.startsWith('#EXTM3U'));
   if (extm3uLine) {
@@ -47,7 +71,16 @@ export function parseM3U8(content: string): FreeTVChannel[] {
       currentExtinf = line.slice('#EXTINF:'.length).trim();
     } else if (currentExtinf && !line.startsWith('#')) {
       const channel = parseExtinfLine(currentExtinf, line, globalTvgUrl);
-      if (channel) channels.push(channel);
+      if (channel) {
+        // Ensure unique IDs by adding counter suffix if duplicate
+        const baseId = channel.id;
+        const count = idCounter.get(baseId) || 0;
+        if (count > 0) {
+          channel.id = `${baseId}-${count}`;
+        }
+        idCounter.set(baseId, count + 1);
+        channels.push(channel);
+      }
       currentExtinf = null;
     }
   }
@@ -81,6 +114,19 @@ function parseExtinfLine(extinf: string, streamUrl: string, globalTvgUrl?: strin
   };
 }
 
+// 搜索频道：匹配 id / 显示名 / 分类 / 国家（大小写不敏感）
+// 地址栏常见的 search=Food.Network.it 对应的是频道 id，必须一并匹配
+export function searchFreeTVChannels(channels: FreeTVChannel[], term: string): FreeTVChannel[] {
+  const t = term.toLowerCase().trim();
+  if (!t) return channels;
+  return channels.filter((c) =>
+    c.id.toLowerCase().includes(t) ||
+    (c.name || '').toLowerCase().includes(t) ||
+    (c.groupTitle || '').toLowerCase().includes(t) ||
+    (c.country || '').toLowerCase().includes(t)
+  );
+}
+
 export function parseEpgXMLWithChannels(content: string, playlistChannels: FreeTVChannel[]): FreeTVEpgProgram[] {
   const epgChannelNames = new Map<string, string>();
   const epgChannelIds = new Map<string, string>(); // epg channel id -> display name
@@ -112,11 +158,20 @@ export function parseEpgXMLWithChannels(content: string, playlistChannels: FreeT
   }
 
   const programmes: FreeTVEpgProgram[] = [];
-  const programmeRegex = /<programme\s+[^>]*channel=["']([^"']+)["']\s+start=["']([^"']+)["']\s+stop=["']([^"']+)["'][^>]*>([\s\S]*?)<\/programme>/gi;
+  // 属性顺序无关：epgshare01 的 AL/TR 等档案把 channel 放在 start/stop 之后
+  const programmeRegex = /<programme\s+([^>]*)>([\s\S]*?)<\/programme>/gi;
 
   let match;
   while ((match = programmeRegex.exec(content)) !== null) {
-    const [, epgChannelId, startStr, stopStr, inner] = match;
+    const attrs = match[1];
+    const getAttr = (name: string): string | null => {
+      const am = attrs.match(new RegExp(name + '=["\']([^"\']+)["\']', 'i'));
+      return am ? am[1] : null;
+    };
+    const epgChannelId = getAttr('channel');
+    const startStr = getAttr('start');
+    const stopStr = getAttr('stop');
+    if (!epgChannelId || !startStr || !stopStr) continue;
     const epgDisplayName = epgChannelNames.get(epgChannelId);
     if (!epgDisplayName) continue;
 
@@ -133,6 +188,7 @@ export function parseEpgXMLWithChannels(content: string, playlistChannels: FreeT
     
     if (!playlistChannel) continue;
 
+    const inner = match[2];
     const titleMatch = inner.match(/<title[^>]*>([^<]+)<\/title>/i);
     const descMatch = inner.match(/<desc[^>]*>([^<]+)<\/desc>/i);
 
@@ -161,13 +217,22 @@ function normalizeName(name: string): string {
 
 export function parseEpgXML(content: string, channelId: string): FreeTVEpgProgram[] {
   const programmes: FreeTVEpgProgram[] = [];
-  const programmeRegex = /<programme\s+[^>]*channel=["']([^"']+)["']\s+start=["']([^"']+)["']\s+stop=["']([^"']+)["'][^>]*>([\s\S]*?)<\/programme>/gi;
+  // 属性顺序无关：兼容 epgshare01 的 channel 属性放在 start/stop 之后的格式
+  const programmeRegex = /<programme\s+([^>]*)>([\s\S]*?)<\/programme>/gi;
 
   let match;
   while ((match = programmeRegex.exec(content)) !== null) {
-    const [, progChannelId, startStr, stopStr, inner] = match;
-    if (progChannelId !== channelId) continue;
+    const attrs = match[1];
+    const getAttr = (name: string): string | null => {
+      const am = attrs.match(new RegExp(name + '=["\']([^"\']+)["\']', 'i'));
+      return am ? am[1] : null;
+    };
+    const progChannelId = getAttr('channel');
+    const startStr = getAttr('start');
+    const stopStr = getAttr('stop');
+    if (progChannelId !== channelId || !startStr || !stopStr) continue;
 
+    const inner = match[2];
     const titleMatch = inner.match(/<title[^>]*>([^<]+)<\/title>/i);
     const descMatch = inner.match(/<desc[^>]*>([^<]+)<\/desc>/i);
 

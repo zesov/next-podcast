@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseM3U8, FreeTVChannel } from '@/lib/freeTvParser';
+import { parseM3U8, searchFreeTVChannels, FreeTVChannel } from '@/lib/freeTvParser';
 
 const PLAYLIST_URL = 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8';
 const CACHE_DURATION = 15 * 60 * 1000;
@@ -45,12 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      const term = search.toLowerCase();
-      filtered = filtered.filter(c =>
-        c.name.toLowerCase().includes(term) ||
-        c.groupTitle?.toLowerCase().includes(term) ||
-        c.country?.toLowerCase().includes(term)
-      );
+      filtered = searchFreeTVChannels(filtered, search);
     }
 
     const total = filtered.length;

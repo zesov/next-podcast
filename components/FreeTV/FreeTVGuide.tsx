@@ -121,13 +121,13 @@ export default function FreeTVGuide({ channels, epgMap, activeId, onSelect, favo
       </div>
 
       <div className="max-h-[520px] overflow-y-auto">
-        {channels.map((channel) => {
+        {channels.map((channel, idx) => {
           const epg = epgMap.get(channel.id) || [];
           const active = channel.id === activeId;
           const isFavorite = favoriteIds.has(channel.id);
           return (
             <div
-              key={channel.id}
+              key={`${channel.id}-${idx}`}
               onClick={() => onSelect(channel)}
               className={`flex border-b border-gray-800/70 last:border-b-0 cursor-pointer transition-colors ${
                 active ? 'bg-indigo-900/20' : 'hover:bg-gray-800/40'
