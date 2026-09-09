@@ -66,8 +66,11 @@ function AiringsStrip({
   return (
     <div className="relative h-16 w-full">
       {merged.map((m, i) => {
-        const left = ((m.start - guideStart) / windowMs) * 100;
-        const width = ((m.end - m.start) / windowMs) * 100;
+        // 節目開始在 guideStart 之前（如直播節目已開始），left 夾 0%，寬度只顯示窗口內可見部分
+        const effectiveStart = Math.max(m.start, guideStart);
+        const effectiveEnd = Math.min(m.end, guideStart + windowMs);
+        const left = ((effectiveStart - guideStart) / windowMs) * 100;
+        const width = ((effectiveEnd - effectiveStart) / windowMs) * 100;
         return (
           <div
             key={`${m.start}-${i}`}
