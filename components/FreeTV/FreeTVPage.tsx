@@ -99,17 +99,18 @@ const fetchLimit = reset && offset === 0 ? 5000 : PAGE_SIZE;
 
       if (reset) {
         const allCats = [...new Set(data.channels.map((c: FreeTVChannel) => c.groupTitle).filter((t): t is string => Boolean(t)))].sort();
-        setAllCategories(allCats as string[]);
 
-        // 搜尋時 API 只返回匹配子集，唔可以當成全量 playlist 寫入 cache（否則下次搜尋喺污染 cache 上過濾會拎 0 結果）
-        if (searchTerm) {
-          setCategories(allCats as string[]);
-        } else {
+        // 唔係「全部」類別/搜尋時，API 只返回子集，唔可以更新全域類別列表/快取
+        if (category === 'all' && !searchTerm) {
+          setAllCategories(allCats as string[]);
           await setCategories(allCats);
-        }
-
-        if (fetchLimit > PAGE_SIZE && !searchTerm) {
-          await cacheSetChannels(data.channels);
+          if (fetchLimit > PAGE_SIZE) {
+            await cacheSetChannels(data.channels);
+          }
+        } else if (searchTerm) {
+          // 搜尋時只更新 React state 類別（顯示用），唔寫入快取
+          setAllCategories(allCats as string[]);
+          await setCategories(allCats);
         }
 
         const displayChannels = data.channels.slice(offset, offset + PAGE_SIZE);
