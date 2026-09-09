@@ -48,27 +48,42 @@ function AiringsStrip({
       </div>
     );
   }
+
+  // 合併連續同名節目（如連續劇 "TV Drama" 分佈多個時段），顯示為單一橫條
+  const merged: { title: string; start: number; end: number; isLive: boolean; description?: string }[] = [];
+  for (const p of visible) {
+    const last = merged[merged.length - 1];
+    if (last && last.title === p.title && p.start <= last.end) {
+      // 同名且時間連續/相鄰 → 延長結束時間
+      last.end = Math.max(last.end, p.end);
+      last.isLive = Boolean(p.isLive); // 取最新狀態
+      last.description = p.description || last.description;
+    } else {
+      merged.push({ title: p.title, start: p.start, end: p.end, isLive: Boolean(p.isLive), description: p.description });
+    }
+  }
+
   return (
     <div className="relative h-16 w-full">
-      {visible.map((p, i) => {
-        const left = ((p.start - guideStart) / windowMs) * 100;
-        const width = ((p.end - p.start) / windowMs) * 100;
+      {merged.map((m, i) => {
+        const left = ((m.start - guideStart) / windowMs) * 100;
+        const width = ((m.end - m.start) / windowMs) * 100;
         return (
           <div
-            key={`${p.start}-${i}`}
+            key={`${m.start}-${i}`}
             className={`absolute top-0 bottom-0 border-r border-gray-700/60 px-2 py-1 overflow-hidden ${
-              p.isLive
+              m.isLive
                 ? 'bg-indigo-600/30 text-white'
                 : 'bg-gray-800 text-gray-200 hover:bg-gray-700'
             }`}
             style={{ left: `${left}%`, width: `${width}%` }}
-            title={p.description || p.title}
+            title={m.description || m.title}
           >
-            {p.isLive && (
+            {m.isLive && (
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1 align-middle animate-pulse" />
             )}
             <span className="text-xs font-medium leading-tight block truncate">
-              {p.title || '\u00a0'}
+              {m.title || '\u00a0'}
             </span>
           </div>
         );
