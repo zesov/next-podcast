@@ -98,11 +98,17 @@ const fetchLimit = reset && offset === 0 ? 5000 : PAGE_SIZE;
       if (seq !== requestSeqRef.current) return;
 
       if (reset) {
-const allCats = [...new Set(data.channels.map((c: FreeTVChannel) => c.groupTitle).filter((t): t is string => Boolean(t)))].sort();
+        const allCats = [...new Set(data.channels.map((c: FreeTVChannel) => c.groupTitle).filter((t): t is string => Boolean(t)))].sort();
         setAllCategories(allCats as string[]);
-        await setCategories(allCats);
 
-        if (fetchLimit > PAGE_SIZE) {
+        // 搜尋時 API 只返回匹配子集，唔可以當成全量 playlist 寫入 cache（否則下次搜尋喺污染 cache 上過濾會拎 0 結果）
+        if (searchTerm) {
+          setCategories(allCats as string[]);
+        } else {
+          await setCategories(allCats);
+        }
+
+        if (fetchLimit > PAGE_SIZE && !searchTerm) {
           await cacheSetChannels(data.channels);
         }
 

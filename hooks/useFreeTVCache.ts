@@ -9,7 +9,7 @@ const CHANNELS_STORE = 'channels';
 const EPG_STORE = 'epg';
 const FAVORITES_STORE = 'favorites';
 const CATEGORIES_STORE = 'categories';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 interface CacheState {
   db: IDBDatabase | null;
@@ -34,6 +34,14 @@ function openDB(): Promise<IDBDatabase> {
     request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      const oldVersion = event.oldVersion;
+      // v4: 清走被搜尋結果污染嘅 channels/categories cache（搜尋子集曾被當成全量寫入）
+      if (oldVersion < 4 && db.objectStoreNames.contains(CHANNELS_STORE)) {
+        db.deleteObjectStore(CHANNELS_STORE);
+      }
+      if (oldVersion < 4 && db.objectStoreNames.contains(CATEGORIES_STORE)) {
+        db.deleteObjectStore(CATEGORIES_STORE);
+      }
       if (!db.objectStoreNames.contains(CHANNELS_STORE)) {
         db.createObjectStore(CHANNELS_STORE);
       }
