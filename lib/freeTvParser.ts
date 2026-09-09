@@ -29,9 +29,10 @@ function hashString(str: string): string {
   return Math.abs(hash).toString(36);
 }
 
-// epgshare01 档案命名与 ISO 国家代码的别名对照（如英国档案叫 UK1 而非 GB1）
+// epgshare01 档案命名与 ISO 国家代码的别名对照（如英国档案叫 UK1 而非 GB1；中国大陆无 CN 档案，港台 EPG 有 CCTV 等频道）
 const EPG_COUNTRY_ALIASES: Record<string, string[]> = {
   GB: ['GB', 'UK'],
+  CN: ['CN', 'HK'],
 };
 
 // 把这些文件从候选列表剔除：ALL_SOURCES 解压后超过 Node 字符串上限会导致请求失败
