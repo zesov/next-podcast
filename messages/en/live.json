@@ -103,6 +103,7 @@
       "recentUrls": "Recent URLs"
     },
     "channelInfo": "Channel Info",
-    "streamUrl": "Stream URL"
+    "streamUrl": "Stream URL",
+    "searchPlaceholder": "Search channels…"
   }
 }

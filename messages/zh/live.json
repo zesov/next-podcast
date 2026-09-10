@@ -103,6 +103,7 @@
       "recentUrls": "最近使用"
     },
     "channelInfo": "频道信息",
-    "streamUrl": "串流地址"
+    "streamUrl": "串流地址",
+    "searchPlaceholder": "搜索频道…"
   }
 }

@@ -68,7 +68,10 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     setIsSupported(true);
 
     // 1) Safari 原生 HLS
-    if (media.canPlayType('application/vnd.apple.mpegurl')) {
+    // 注意：不能用 canPlayType 判断 — Chrome headless 返回 'maybe'（truthy）但不真正支持 HLS，
+    // 会导致走原生分支而播放失败。改用 MediaSource 检测：Safari 无 MediaSource，走原生；其余走 hls.js。
+    const hasMediaSource = typeof MediaSource !== 'undefined';
+    if (!hasMediaSource) {
       media.src = channel.streamUrl;
       media.play().catch(() => setIsPlaying(false));
     } else {
@@ -258,7 +261,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
         </span>
       </div>
 
-      {channel.type === 'video' ? (
+      {channel.type !== 'audio' ? (
         <div className="relative">
           <video
             ref={mediaRef as React.RefObject<HTMLVideoElement>}
