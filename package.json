@@ -6,8 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
-    "db:seed": "node scripts/seedLiveChannels.ts"
+    "lint": "eslint"
   },
   "dependencies": {
     "@deno/kv": "^0.14.0",

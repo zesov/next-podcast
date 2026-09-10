@@ -1,7 +1,8 @@
 'use client';
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { LiveChannel, EpgSlot } from './liveChannels';
+import { EpgSlot } from './liveChannels';
+import { FreeTVChannel } from '@/lib/freeTvParser';
 import LiveTvPlayer from './LiveTvPlayer';
 import ChannelList, { ChannelItem } from './ChannelList';
 import M3UInput from './M3UInput';
@@ -10,32 +11,21 @@ import { useM3UChannels } from '@/hooks/useM3UChannels';
 import { useDirectStream } from '@/hooks/useDirectStream';
 import { M3UChannel } from '@/lib/m3uParser';
 
-interface CategoryMeta {
-  category: string;
-  count: number;
-}
-
-interface LiveTvPageProps {
-  categories: CategoryMeta[];
-}
-
 type TabType = 'builtin' | 'm3u' | 'direct';
 
 const PAGE_SIZE = 48;
 
-// 将任意频道类型统一为 ChannelList 需要的 ChannelItem
-function toChannelItem(ch: LiveChannel | M3UChannel): ChannelItem {
+function toChannelItem(ch: FreeTVChannel | M3UChannel): ChannelItem {
   return {
     id: ch.id,
     name: ch.name,
     logo: ch.logo,
-    groupTitle: 'groupTitle' in ch ? ch.groupTitle : ('category' in ch ? ch.category : undefined),
+    groupTitle: 'groupTitle' in ch ? ch.groupTitle : undefined,
     streamUrl: ch.streamUrl,
-    source: 'source' in ch ? ch.source : undefined,
   };
 }
 
-export default function LiveTvPage({ categories }: LiveTvPageProps) {
+export default function LiveTvPage() {
   const t = useTranslations('live');
 
   const [activeTab, setActiveTab] = useState<TabType>('builtin');
@@ -46,15 +36,15 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Built-in 频道状态
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [builtinChannels, setBuiltinChannels] = useState<LiveChannel[]>([]);
+  const [builtinChannels, setBuiltinChannels] = useState<FreeTVChannel[]>([]);
+  const [builtinCategories, setBuiltinCategories] = useState<string[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [activeEpg, setActiveEpg] = useState<EpgSlot[]>([]);
-  const [activeChannel, setActiveChannel] = useState<LiveChannel | M3UChannel | null>(null);
+  const [activeChannel, setActiveChannel] = useState<FreeTVChannel | M3UChannel | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window === 'undefined') return new Set();
     try {
@@ -104,7 +94,6 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
     });
   }, []);
 
-  // === Built-in 频道分页加载 ===
   const loadPage = useCallback(
     async (offset: number, category: string, reset: boolean, search: string) => {
       const seq = ++requestSeqRef.current;
@@ -113,14 +102,18 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
         const params = new URLSearchParams({ offset: String(offset), limit: String(PAGE_SIZE) });
         if (category !== 'all') params.set('category', category);
         if (search) params.set('search', search);
-        const res = await fetch(`/api/liveChannels?${params.toString()}`);
+        const res = await fetch(`/api/free-tv/channels?${params.toString()}`);
         if (!res.ok) throw new Error('fetch failed');
         const data = (await res.json()) as {
-          channels: LiveChannel[];
+          channels: FreeTVChannel[];
           total: number;
           hasMore: boolean;
         };
         if (seq !== requestSeqRef.current) return;
+        if (reset && category === 'all' && !search) {
+          const cats = [...new Set(data.channels.map((c) => c.groupTitle).filter(Boolean))] as string[];
+          setBuiltinCategories(cats.sort());
+        }
         setBuiltinChannels((prev) => (reset ? data.channels : [...prev, ...data.channels]));
         setHasMore(data.hasMore);
       } catch (e) {
@@ -176,7 +169,7 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
 
     let stale = false;
     setActiveEpg([]);
-    fetch(`/api/liveChannels/epg?channelId=${channelId}`)
+    fetch(`/api/free-tv/epg?channelId=${channelId}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((epg: EpgSlot[]) => {
         if (stale) return;
@@ -215,8 +208,7 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
         id: 'direct-' + url,
         name: url.split('/').pop() || 'Stream',
         streamUrl: url,
-        type: 'video',
-      } as LiveChannel);
+      });
     },
     [direct]
   );
@@ -314,7 +306,7 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
                     >
                       {t('all')}
                     </button>
-                    {categories.slice(0, 10).map(({ category }) => (
+                    {builtinCategories.slice(0, 10).map((category) => (
                       <button
                         key={category}
                         onClick={() => setActiveCategory(category)}
