@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import type Hls from 'hls.js';
 import { LiveChannel } from './liveChannels';
@@ -8,8 +8,18 @@ import { usePlaybackTracking } from '@/hooks/usePlaybackTracking';
 // 直播播放器（HLS 视频/音频）
 // Safari 原生支持 HLS；其他浏览器使用 hls.js（动态导入避免 SSR window 报错）。
 // 部分频道地址为 bally:// 等自定义协议或短链，浏览器无法直接播放，需解析后才能播。
+// 接受最小化的频道类型，兼容 LiveChannel、FreeTVChannel、M3UChannel
+interface PlayableChannel {
+  id: string;
+  name: string;
+  logo?: string;
+  streamUrl: string;
+  type?: 'video' | 'audio';
+  number?: number;
+}
+
 interface LiveTvPlayerProps {
-  channel: LiveChannel | null;
+  channel: PlayableChannel | null;
   className?: string;
   overlay?: React.ReactNode; // 叠加在视频上的元数据（Plex hero 风格：频道 logo + 当前节目）
 }
@@ -26,6 +36,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
 
   const playableUrl = channel && isHttpUrl(channel.streamUrl) ? channel.streamUrl : null;
@@ -37,13 +48,14 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     enabled: !!channel && !!playableUrl,
   });
 
-  // 切换频道时重建播放器
+  // 切换频道時重建播放器
   useEffect(() => {
     if (!channel || !mediaRef.current) return;
 
-    // 非 http(s) 地址无法直接播放，提示
+    // 非 http(s) 地址無法直接播放，提示
     if (!isHttpUrl(channel.streamUrl)) {
       setIsSupported(false);
+      setErrorMessage(`${t('nonHttpStream')} (${channel.streamUrl.slice(0, 30)}…)`);
       return () => {};
     }
 
@@ -51,12 +63,19 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     let hls: Hls | null = null;
     let destroyed = false;
 
+    const clearError = () => setErrorMessage(null);
+    clearError();
+    setIsSupported(true);
+
     // 1) Safari 原生 HLS
-    if (media.canPlayType('application/vnd.apple.mpegurl')) {
+    // 注意：不能用 canPlayType 判断 — Chrome headless 返回 'maybe'（truthy）但不真正支持 HLS，
+    // 会导致走原生分支而播放失败。改用 MediaSource 检测：Safari 无 MediaSource，走原生；其余走 hls.js。
+    const hasMediaSource = typeof MediaSource !== 'undefined';
+    if (!hasMediaSource) {
       media.src = channel.streamUrl;
       media.play().catch(() => setIsPlaying(false));
     } else {
-      // 2) 其他浏览器：hls.js（动态导入，仅客户端）
+      // 2) 其他瀏覽器：hls.js（動態導入，僅客戶端）
       import('hls.js').then(({ default: HlsModule }) => {
         if (destroyed || !mediaRef.current) return;
         if (HlsModule.isSupported()) {
@@ -70,14 +89,38 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
           hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
             mediaRef.current?.play().catch(() => setIsPlaying(false));
           });
+
+          // HLS 錯誤處理
+          hls.on(HlsModule.Events.ERROR, (event, data) => {
+            if (destroyed) return;
+            if (data.fatal) {
+              switch (data.type) {
+                case HlsModule.ErrorTypes.NETWORK_ERROR:
+                  setErrorMessage(t('networkError'));
+                  break;
+                case HlsModule.ErrorTypes.MEDIA_ERROR:
+                  setErrorMessage(t('mediaError'));
+                  break;
+                case HlsModule.ErrorTypes.MUX_ERROR:
+                  setErrorMessage(t('muxError'));
+                  break;
+                default:
+                  setErrorMessage(t('hlsError'));
+              }
+              setIsPlaying(false);
+            } else if (data.type === HlsModule.ErrorTypes.MEDIA_ERROR && hls) {
+              // 非致命媒體錯誤：嘗試恢復
+              hls.recoverMediaError();
+            }
+          });
         } else {
           setIsSupported(false);
+          setErrorMessage(t('unsupported'));
         }
       });
     }
 
     setIsPlaying(false);
-    setIsSupported(true);
     hasStartedRef.current = false;
 
     return () => {
@@ -89,7 +132,33 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     };
   }, [channel]);
 
-  // 播放 / 暂停
+  // 媒體元素錯誤處理（原生 HLS / hls.js attach 後均會觸發）
+  const handleMediaError = useCallback(() => {
+    const media = mediaRef.current;
+    if (!media) return;
+    const err = media.error;
+    if (!err) return;
+    switch (err.code) {
+      case MediaError.MEDIA_ERR_ABORTED:
+        setErrorMessage(t('aborted'));
+        break;
+      case MediaError.MEDIA_ERR_NETWORK:
+        setErrorMessage(t('networkError'));
+        break;
+      case MediaError.MEDIA_ERR_DECODE:
+        setErrorMessage(t('decodeError'));
+        break;
+      case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+        setErrorMessage(t('unsupported'));
+        setIsSupported(false);
+        break;
+      default:
+        setErrorMessage(t('playbackError'));
+    }
+    setIsPlaying(false);
+  }, [t]);
+
+  // 播放 / 暫停
   const togglePlay = async () => {
     const media = mediaRef.current;
     if (!media) return;
@@ -192,7 +261,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
         </span>
       </div>
 
-      {channel.type === 'video' ? (
+      {channel.type !== 'audio' ? (
         <div className="relative">
           <video
             ref={mediaRef as React.RefObject<HTMLVideoElement>}
@@ -201,6 +270,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
             playsInline
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
+            onError={handleMediaError}
           />
           {overlay && <div className="absolute inset-0 pointer-events-none">{overlay}</div>}
         </div>
@@ -212,15 +282,14 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
             controls
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
+            onError={handleMediaError}
           />
         </div>
       )}
 
-      {!isSupported && channel && (
+      {(!isSupported || errorMessage) && channel && (
         <p className="px-4 py-2 text-sm text-yellow-400 bg-gray-800">
-          {playableUrl
-            ? t('unsupported')
-            : `${t('nonHttpStream')} (${channel.streamUrl.slice(0, 30)}…)`}
+          {errorMessage || playableUrl ? t('unsupported') : `${t('nonHttpStream')} (${channel.streamUrl.slice(0, 30)}…)`}
         </p>
       )}
 

@@ -84,6 +84,7 @@ export default function SearchInput({
 
   const isLivePage = pathname?.startsWith("/live");
   const isPeertubePage = pathname?.startsWith("/peertube");
+  const isFreeTvPage = pathname?.startsWith("/live/free-tv");
 
   // Sync internal state with external callback
   useEffect(() => {
@@ -111,35 +112,43 @@ export default function SearchInput({
         if (!searchTerm.trim()) return;
 
         const term = searchTerm.trim();
-        if (isLivePage) {
-          router.push(`/live?search=${encodeURIComponent(term)}`);
-        } else if (isPeertubePage) {
-          const filters = currentFilters ?? peertubeFiltersRef.current?.getFilters() ?? {};
-          const filterParams = new URLSearchParams();
-          Object.entries(filters).forEach(([key, value]) => {
-            if (value !== null && value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
-              if (Array.isArray(value)) {
-                filterParams.set(key, value.join(','));
-              } else {
-                filterParams.set(key, String(value));
-              }
+if (isFreeTvPage) {
+        // Build URL with search parameter, preserving existing category if any
+        const params = new URLSearchParams({ search: term });
+        // Note: We don't preserve category here because free-tv search should show all matching channels
+        // regardless of category. The user can still use category buttons after search.
+        router.push(`/live/free-tv?${params.toString()}`);
+      } else if (isLivePage) {
+        router.push(`/live?search=${encodeURIComponent(term)}`);
+      } else if (isPeertubePage) {
+        const filters = currentFilters ?? peertubeFiltersRef.current?.getFilters() ?? {};
+        const filterParams = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+            if (Array.isArray(value)) {
+              filterParams.set(key, value.join(','));
+            } else {
+              filterParams.set(key, String(value));
             }
-          });
-          const queryString = filterParams.toString();
-          router.push(`/peertube?search=${encodeURIComponent(term)}${queryString ? `&${queryString}` : ''}`);
-        } else {
-          router.push(`/podcast/?tag=${encodeURIComponent(term)}`);
-        }
+          }
+        });
+        const queryString = filterParams.toString();
+        router.push(`/peertube?search=${encodeURIComponent(term)}${queryString ? `&${queryString}` : ''}`);
+      } else {
+        router.push(`/podcast/?tag=${encodeURIComponent(term)}`);
+      }
       }
     },
     [searchTerm, isLivePage, isPeertubePage, peertubeFiltersRef, router]
   );
 
   const placeholder =
-    isLivePage
+    isLivePage && !isFreeTvPage
       ? t("liveSearchPlaceholder")
       : isPeertubePage
       ? "Search PeerTube videos…"
+      : isFreeTvPage
+      ? "Search Free TV channels…"
       : t("searchPlaceholder");
 
   return (
