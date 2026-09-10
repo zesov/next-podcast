@@ -62,13 +62,16 @@ export default function ChannelList({
                 src={ch.logo}
                 alt={ch.name}
                 loading="lazy"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                }}
                 className="w-8 h-6 object-contain shrink-0"
               />
-            ) : (
-              <div className="w-8 h-6 shrink-0 rounded bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300">
-                {ch.name.slice(0, 1)}
-              </div>
-            )}
+            ) : null}
+            <div className={`w-8 h-6 shrink-0 rounded bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300 ${ch.logo ? 'hidden' : ''}`}>
+              {ch.name.slice(0, 1)}
+            </div>
 
             {/* Name + group */}
             <div className="min-w-0 flex-1">

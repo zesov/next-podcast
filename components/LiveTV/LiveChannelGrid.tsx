@@ -33,13 +33,16 @@ export default function LiveChannelGrid({ channels, activeId, onSelect }: LiveCh
                   src={channel.logo}
                   alt={channel.name}
                   loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                  }}
                   className="w-full h-full object-contain p-2"
                 />
-              ) : (
-                <span className="text-4xl font-bold text-gray-400 group-hover:text-indigo-500">
-                  {channel.name.slice(0, 1)}
-                </span>
-              )}
+              ) : null}
+              <span className={`text-4xl font-bold text-gray-400 group-hover:text-indigo-500 ${channel.logo ? 'hidden' : ''}`}>
+                {channel.name.slice(0, 1)}
+              </span>
               {active && (
                 <span className="absolute top-2 left-2 flex items-center space-x-1 bg-red-600 text-white text-xs px-2 py-0.5 rounded">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>

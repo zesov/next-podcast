@@ -38,13 +38,13 @@ function toChannelItem(ch: LiveChannel | M3UChannel): ChannelItem {
 export default function LiveTvPage({ categories }: LiveTvPageProps) {
   const t = useTranslations('live');
 
-  // Tab 状态（持久化到 localStorage）
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('live:activeTab') as TabType) || 'builtin';
-    }
-    return 'builtin';
-  });
+  const [activeTab, setActiveTab] = useState<TabType>('builtin');
+  // hydration 后从 localStorage 恢复上次选中的 tab
+  useEffect(() => {
+    const saved = localStorage.getItem('live:activeTab') as TabType | null;
+    if (saved && saved !== activeTab) setActiveTab(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Built-in 频道状态
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -68,6 +68,10 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const requestSeqRef = useRef(0);
+
+  // EPG 客户端缓存：channelId → { epg, fetchedAt }
+  const epgCacheRef = useRef<Map<string, { epg: EpgSlot[]; fetchedAt: number }>>(new Map());
+  const EPG_CACHE_TTL = 15 * 60 * 1000; // 15 分钟过期
 
   // M3U / Direct hooks
   const m3u = useM3UChannels();
@@ -153,16 +157,31 @@ export default function LiveTvPage({ categories }: LiveTvPageProps) {
     return () => observer.disconnect();
   }, [hasMore, loading, builtinChannels.length, activeCategory, loadPage, activeTab, debouncedSearch]);
 
-  // 选中频道的 EPG（仅 Built-in）
+  // 选中频道的 EPG（仅 Built-in）— 带客户端缓存，过期或节目全部过时则重新拉取
   const effectiveChannel = activeChannel ?? builtinChannels[0] ?? null;
   useEffect(() => {
     if (activeTab !== 'builtin' || !effectiveChannel) return;
+    const channelId = effectiveChannel.id;
+    const cached = epgCacheRef.current.get(channelId);
+    const nowMs = Date.now();
+
+    if (cached) {
+      const withinTtl = nowMs - cached.fetchedAt < EPG_CACHE_TTL;
+      const hasFutureProgram = cached.epg.some((p) => p.end > nowMs);
+      if (withinTtl && hasFutureProgram) {
+        setActiveEpg(cached.epg);
+        return;
+      }
+    }
+
     let stale = false;
     setActiveEpg([]);
-    fetch(`/api/liveChannels/epg?channelId=${effectiveChannel.id}`)
+    fetch(`/api/liveChannels/epg?channelId=${channelId}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((epg: EpgSlot[]) => {
-        if (!stale) setActiveEpg(epg);
+        if (stale) return;
+        epgCacheRef.current.set(channelId, { epg, fetchedAt: nowMs });
+        setActiveEpg(epg);
       })
       .catch(() => {
         if (!stale) setActiveEpg([]);

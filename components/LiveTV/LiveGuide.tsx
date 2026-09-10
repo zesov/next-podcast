@@ -146,13 +146,16 @@ export default function LiveGuide({ channels, epgMap, activeId, onSelect }: Live
                     src={channel.logo}
                     alt={channel.name}
                     loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                    }}
                     className="w-9 h-6 object-contain shrink-0"
                   />
-                ) : (
-                  <div className="w-9 h-6 shrink-0 rounded bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300">
-                    {channel.name.slice(0, 1)}
-                  </div>
-                )}
+                ) : null}
+                <div className={`w-9 h-6 shrink-0 rounded bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300 ${channel.logo ? 'hidden' : ''}`}>
+                  {channel.name.slice(0, 1)}
+                </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-white truncate">{channel.name}</p>
                   <p className="text-[11px] text-gray-500 truncate">
