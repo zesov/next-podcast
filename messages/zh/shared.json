@@ -1,0 +1,29 @@
+{
+  "navbar": {
+    "brand": "播客",
+    "browse": "浏览",
+    "live": "直播",
+    "peertube": "PeerTube",
+    "ranking": "排行榜",
+    "categories": "分类",
+    "searchPlaceholder": "搜索播客、单集或创作者",
+    "liveSearchPlaceholder": "搜索直播频道（名称、分类...）"
+  },
+  "footer": {
+    "explore": "探索",
+    "browse": "浏览",
+    "ranking": "排行榜",
+    "categories": "分类",
+    "about": "关于",
+    "aboutUs": "关于我们",
+    "creators": "创作者",
+    "jobs": "工作机会",
+    "support": "支持",
+    "help": "帮助中心",
+    "guidelines": "社区指南",
+    "feedback": "反馈",
+    "follow": "关注我们",
+    "disclaimer": "免責聲明",
+    "copyright": "Copyright © 2025 Next Podcast Inc. 保留所有权利。"
+  }
+}

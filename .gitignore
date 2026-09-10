@@ -44,3 +44,7 @@ next-env.d.ts
 .code-context/
 .omo/
 data/
+
+# data
+.playwright-mcp/
+data/

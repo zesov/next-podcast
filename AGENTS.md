@@ -1,10 +1,10 @@
 # AGENTS.md
 
 ## What this is
-A **podcast web player** (Next.js 15 App Router) that surfaces Hong Kong / RTHK podcasts from the [Podcast Index](https://podcastindex.org) API. Not generated with a formal design system — hand-rolled Tailwind utility components.
+A **podcast web player** (Next.js 16 App Router) that surfaces Hong Kong / RTHK podcasts from the [Podcast Index](https://podcastindex.org) API. Not generated with a formal design system — hand-rolled Tailwind utility components.
 
 ## Commands
-- `npm run dev` / `npm run build` — run under **Turbopack** (script includes `--turbopack`)
+- `bun dev` / `npm run build` — run under **Turbopack** (script includes `--turbopack`)
 - `npm run lint` — ESLint (next/core-web-vitals + next/typescript). This is the **only** verification; there is **no test suite and no `typecheck` script**. Run `npm run build` to typecheck.
 - Package manager is mixed: both `bun.lock` and `package-lock.json` are committed. Use `bun` for installs, but don't remove either lockfile.
 
@@ -34,3 +34,12 @@ Playback state is shared via the `EpisodeContext` (`useEpisode` hook), which wra
 - `tsconfig.json` `include` references `podcast/[id]/page.js` — a stale entry; the real file is `app/podcast/[id]/page.tsx`. Don't "fix" it without checking nothing depends on it.
 - `.code-context/` is untracked (agent scratch dir) — don't commit it.
 - No test infra exists; if you add behavior, verify via `npm run build` + manual dev-server check rather than inventing a test framework.
+
+## Important
+- 使用frontend-design skills
+- omo Delegated tasks任务分配10秒超时无反应后，用主agent直接执行
+- TDD测试优先开发模式优先
+- 不要自动 git commit，要由user明确提出先commit
+
+### browse playwright
+- 直接使用bash命令 uvx playwright  

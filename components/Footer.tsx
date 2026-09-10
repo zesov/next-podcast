@@ -1,54 +1,52 @@
+'use client';
+import { useTranslations } from 'next-intl';
+
 export default function Footer() {
+  const t = useTranslations('footer');
   return (
     <footer className="bg-gray-800 text-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">探索</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('explore')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">浏览</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">排行榜</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">分类</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('browse')}</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('ranking')}</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('categories')}</a></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-4">关于</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('about')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">关于我们</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">创作者</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">工作机会</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('aboutUs')}</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('creators')}</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('jobs')}</a></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-4">支持</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('support')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">帮助中心</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">社区指南</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">反馈</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('help')}</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('guidelines')}</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">{t('feedback')}</a></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-4">关注我们</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('disclaimer')}</h3>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-300 hover:text-white">
-                <i className="fab fa-weixin text-xl"></i>
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white">
-                <i className="fab fa-weibo text-xl"></i>
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white">
-                <i className="fab fa-xiaohongshu text-xl"></i>
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white">
-                <i className="fab fa-douyin text-xl"></i>
-              </a>
+                <p className="text-gray-200 text-sm leading-relaxed">
+<svg className="w-4 h-4 text-amber-500 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">  
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                     </svg>
+                    All content is collected from public sources. We respect copyright and will remove any infringing content immediately upon valid notice.
+                </p>
             </div>
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-8 text-sm text-gray-400">
-          <p>Copyright © 2025 Apple Inc. 保留所有权利。</p>
+          <p>{t('copyright')}</p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

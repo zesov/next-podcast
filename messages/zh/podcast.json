@@ -1,0 +1,30 @@
+{
+  "home": {
+    "featured": "精选播客",
+    "viewAll": "查看全部",
+    "browseCategories": "分类浏览",
+    "topPodcasts": "热门节目排行",
+    "latestUpdate": "最新更新",
+    "topEpisodes": "热门单集排行",
+    "recommended": "为你推荐",
+    "hotCategories": "热门分类"
+  },
+  "categoryNames": {
+    "history": "历史",
+    "healthFitness": "健康与健身",
+    "investing": "投资",
+    "mentalHealth": "心理健康",
+    "fiction": "小说",
+    "tvFilm": "电视与电影",
+    "selfImprovement": "自我完善",
+    "comedy": "喜剧"
+  },
+  "player": {
+    "notSelected": "未选择节目",
+    "playbackFailed": "播放失败"
+  },
+  "episode": {
+    "loading": "加载中…",
+    "allEpisodes": "全部剧集"
+  }
+}
