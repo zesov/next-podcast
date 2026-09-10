@@ -8,8 +8,18 @@ import { usePlaybackTracking } from '@/hooks/usePlaybackTracking';
 // 直播播放器（HLS 视频/音频）
 // Safari 原生支持 HLS；其他浏览器使用 hls.js（动态导入避免 SSR window 报错）。
 // 部分频道地址为 bally:// 等自定义协议或短链，浏览器无法直接播放，需解析后才能播。
+// 接受最小化的频道类型，兼容 LiveChannel、FreeTVChannel、M3UChannel
+interface PlayableChannel {
+  id: string;
+  name: string;
+  logo?: string;
+  streamUrl: string;
+  type?: 'video' | 'audio';
+  number?: number;
+}
+
 interface LiveTvPlayerProps {
-  channel: LiveChannel | null;
+  channel: PlayableChannel | null;
   className?: string;
   overlay?: React.ReactNode; // 叠加在视频上的元数据（Plex hero 风格：频道 logo + 当前节目）
 }

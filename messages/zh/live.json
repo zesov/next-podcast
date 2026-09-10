@@ -81,6 +81,28 @@
       "refresh": "刷新",
       "cacheStale": "显示缓存数据。点击刷新。",
       "epgSource": "节目表来源：{url}"
-    }
+    },
+    "tabs": {
+      "builtin": "内置",
+      "m3u": "M3U 播放列表",
+      "direct": "直接串流"
+    },
+    "m3u": {
+      "enterUrl": "输入 M3U 播放列表地址",
+      "uploadFile": "上传 M3U 文件",
+      "load": "加载播放列表",
+      "loading": "正在加载频道…",
+      "sourceInfo": "从 {source} 加载了 {count} 个频道",
+      "noChannels": "播放列表中未找到频道",
+      "invalidFormat": "M3U 格式无效",
+      "loadedSources": "已加载的源"
+    },
+    "direct": {
+      "enterUrl": "输入 HLS 串流地址（如 https://example.com/stream.m3u8）",
+      "play": "播放",
+      "recentUrls": "最近使用"
+    },
+    "channelInfo": "频道信息",
+    "streamUrl": "串流地址"
   }
 }

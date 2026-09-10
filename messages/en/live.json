@@ -81,6 +81,28 @@
       "refresh": "Refresh",
       "cacheStale": "Showing cached data. Tap to refresh.",
       "epgSource": "EPG from {url}"
-    }
+    },
+    "tabs": {
+      "builtin": "Built-in",
+      "m3u": "M3U Playlist",
+      "direct": "Direct Stream"
+    },
+    "m3u": {
+      "enterUrl": "Enter M3U playlist URL",
+      "uploadFile": "Upload M3U file",
+      "load": "Load Playlist",
+      "loading": "Loading channels…",
+      "sourceInfo": "{count} channels from {source}",
+      "noChannels": "No channels found in playlist",
+      "invalidFormat": "Invalid M3U format",
+      "loadedSources": "Loaded sources"
+    },
+    "direct": {
+      "enterUrl": "Enter HLS stream URL (e.g. https://example.com/stream.m3u8)",
+      "play": "Play",
+      "recentUrls": "Recent URLs"
+    },
+    "channelInfo": "Channel Info",
+    "streamUrl": "Stream URL"
   }
 }

@@ -426,12 +426,8 @@ useEffect(() => {
             id: effectiveChannel.id,
             name: effectiveChannel.name,
             type: 'video' as const,
-            category: effectiveChannel.groupTitle || 'Other',
-            source: 'free-tv',
             logo: effectiveChannel.logo,
             streamUrl: effectiveChannel.streamUrl,
-            description: '',
-            epg: activeEpg,
           } : null}
           className="w-full max-w-6xl mx-auto"
           overlay={

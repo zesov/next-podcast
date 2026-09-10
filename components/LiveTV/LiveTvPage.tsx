@@ -1,9 +1,15 @@
 'use client';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { LiveChannel, EpgSlot } from './liveChannels';
 import LiveTvPlayer from './LiveTvPlayer';
 import LiveGuide from './LiveGuide';
+import ChannelList, { ChannelItem } from './ChannelList';
+import M3UInput from './M3UInput';
+import DirectStreamInput from './DirectStreamInput';
+import { useM3UChannels } from '@/hooks/useM3UChannels';
+import { useDirectStream } from '@/hooks/useDirectStream';
+import { M3UChannel } from '@/lib/m3uParser';
 
 interface CategoryMeta {
   category: string;
@@ -15,17 +21,40 @@ interface LiveTvPageProps {
   searchTerm?: string;
 }
 
+type TabType = 'builtin' | 'm3u' | 'direct';
+
 const PAGE_SIZE = 48;
+
+// Convert any channel type to ChannelItem for the unified list
+function toChannelItem(ch: LiveChannel | M3UChannel): ChannelItem {
+  return {
+    id: ch.id,
+    name: ch.name,
+    logo: ch.logo,
+    groupTitle: 'groupTitle' in ch ? ch.groupTitle : ('category' in ch ? ch.category : undefined),
+    streamUrl: ch.streamUrl,
+    source: 'source' in ch ? ch.source : undefined,
+  };
+}
 
 export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) {
   const t = useTranslations('live');
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('live:activeTab') as TabType) || 'builtin';
+    }
+    return 'builtin';
+  });
+
+  // Built-in tab state
   const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
-  const [channels, setChannels] = useState<LiveChannel[]>([]);
+  const [builtinChannels, setBuiltinChannels] = useState<LiveChannel[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [activeEpg, setActiveEpg] = useState<EpgSlot[]>([]);
-  const [activeChannel, setActiveChannel] = useState<LiveChannel | null>(null);
+  const [activeChannel, setActiveChannel] = useState<LiveChannel | M3UChannel | null>(null);
   const [epgMap, setEpgMap] = useState<Map<string, EpgSlot[]>>(new Map());
   const [now, setNow] = useState(() => Date.now());
 
@@ -33,6 +62,14 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
   const requestSeqRef = useRef(0);
   const epgMapRef = useRef<Map<string, EpgSlot[]>>(new Map());
 
+  // M3U tab hooks
+  const m3u = useM3UChannels();
+
+  // Direct tab hook
+  const direct = useDirectStream();
+  const [directUrl, setDirectUrl] = useState<string | null>(null);
+
+  // Timer for EPG updates
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(timer);
@@ -42,7 +79,12 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
     epgMapRef.current = epgMap;
   }, [epgMap]);
 
-  // 分页加载
+  // Persist active tab
+  useEffect(() => {
+    localStorage.setItem('live:activeTab', activeTab);
+  }, [activeTab]);
+
+  // === Built-in tab: pagination loading ===
   const loadPage = useCallback(
     async (offset: number, category: string | 'all', reset: boolean) => {
       const seq = ++requestSeqRef.current;
@@ -59,7 +101,7 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
           hasMore: boolean;
         };
         if (seq !== requestSeqRef.current) return;
-        setChannels((prev) => (reset ? data.channels : [...prev, ...data.channels]));
+        setBuiltinChannels((prev) => (reset ? data.channels : [...prev, ...data.channels]));
         setHasMore(data.hasMore);
       } catch (e) {
         console.error('load channels failed', e);
@@ -70,41 +112,38 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
     [searchTerm]
   );
 
-  // 首屏/分类切换：重置分页，加载第一页
+  // Reset and load first page on category change
   useEffect(() => {
+    if (activeTab !== 'builtin') return;
     requestSeqRef.current++;
-    setChannels([]);
+    setBuiltinChannels([]);
     setHasMore(true);
     setEpgMap(new Map());
     loadPage(0, activeCategory, true);
-  }, [activeCategory, loadPage]);
+  }, [activeCategory, loadPage, activeTab]);
 
-  // 选中频道
-  const handleSelect = useCallback((channel: LiveChannel) => {
-    setActiveChannel(channel);
-  }, []);
-
-  // 频道列表无限滚动
+  // Infinite scroll for built-in channels
   useEffect(() => {
+    if (activeTab !== 'builtin') return;
     const sentinel = loadMoreRef.current;
     if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          loadPage(channels.length, activeCategory, false);
+          loadPage(builtinChannels.length, activeCategory, false);
         }
       },
       { rootMargin: '200px' }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, loading, channels.length, activeCategory, loadPage]);
+  }, [hasMore, loading, builtinChannels.length, activeCategory, loadPage, activeTab]);
 
-  // 已加载频道批量拉取 EPG（用于网格各行节目条）
+  // Batch EPG fetch for built-in channels
   useEffect(() => {
-    if (channels.length === 0) return;
-    const ids = channels
+    if (activeTab !== 'builtin' || builtinChannels.length === 0) return;
+    const ids = builtinChannels
       .map((c) => c.id)
       .filter((id) => !epgMapRef.current.has(id));
     if (ids.length === 0) return;
@@ -121,12 +160,12 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
       })
       .catch((e) => console.error('load programs failed', e));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channels.length, activeCategory]);
+  }, [builtinChannels.length, activeCategory, activeTab]);
 
-  // 选中频道变化时按需加载完整 EPG（右侧详情）
-  const effectiveChannel = activeChannel ?? channels[0] ?? null;
+  // EPG for selected channel
+  const effectiveChannel = activeChannel ?? builtinChannels[0] ?? null;
   useEffect(() => {
-    if (!effectiveChannel) return;
+    if (activeTab !== 'builtin' || !effectiveChannel) return;
     const mapEpEpg = epgMapRef.current.get(effectiveChannel.id) || [];
     if (mapEpEpg.length > 0) {
       setActiveEpg(mapEpEpg);
@@ -145,14 +184,62 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
       stale = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveChannel?.id]);
+  }, [effectiveChannel?.id, activeTab]);
 
   const currentProgram = activeEpg.find((p) => now >= p.start && now < p.end);
   const nextProgram = activeEpg.find((p) => p.start > now);
 
+  // === Channel selection handler ===
+  const handleSelect = useCallback((channel: ChannelItem) => {
+    // Find the original channel object
+    const original = builtinChannels.find((c) => c.id === channel.id)
+      || m3u.channels.find((c) => c.id === channel.id);
+    if (original) setActiveChannel(original);
+  }, [builtinChannels, m3u.channels]);
+
+  // === Favorites (simplified — stored in localStorage for now) ===
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      return new Set(JSON.parse(localStorage.getItem('live:favorites') || '[]'));
+    } catch {
+      return new Set();
+    }
+  });
+
+  const toggleFavorite = useCallback((id: string) => {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      localStorage.setItem('live:favorites', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
+
+  // === Direct stream play handler ===
+  const handleDirectPlay = useCallback((url: string) => {
+    setDirectUrl(url);
+    direct.playUrl(url);
+    // Create a virtual channel for the player
+    setActiveChannel({
+      id: 'direct-' + url,
+      name: url.split('/').pop() || 'Stream',
+      streamUrl: url,
+    } as LiveChannel);
+  }, [direct]);
+
+  // === Determine channels to show based on active tab ===
+  const displayChannels: ChannelItem[] = useMemo(() => {
+    if (activeTab === 'm3u') {
+      return m3u.channels.map(toChannelItem);
+    }
+    return builtinChannels.map(toChannelItem);
+  }, [activeTab, builtinChannels, m3u.channels]);
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
-      {/* Plex hero：视频播放器 + 元数据浮层 */}
+      {/* Player area */}
       <div className="w-full bg-black">
         <LiveTvPlayer
           channel={effectiveChannel}
@@ -177,7 +264,6 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
                       </span>
                       <span className="text-xs text-gray-200">
                         {effectiveChannel.name}
-                        {effectiveChannel.number != null && ` · CH ${effectiveChannel.number}`}
                       </span>
                     </div>
                     {currentProgram ? (
@@ -209,53 +295,110 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* 分类标签栏 */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <button
-            onClick={() => setActiveCategory('all')}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-              activeCategory === 'all'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-          >
-            {t('all')}
-          </button>
-          {categories.slice(0, 12).map(({ category }) => (
+        {/* Tab navigation */}
+        <div className="flex gap-1 mb-6 bg-gray-900 rounded-lg p-1 w-fit">
+          {(['builtin', 'm3u', 'direct'] as TabType[]).map((tab) => (
             <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-                activeCategory === category
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
               }`}
             >
-              {t(`categories.${category}`) !== `categories.${category}`
-                ? t(`categories.${category}`)
-                : category}
+              {t(`tabs.${tab}`)}
             </button>
           ))}
         </div>
 
-        {/* 双栏：左侧 Plex 节目单网格，右侧当前/下个节目详情 */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <LiveGuide
-              channels={channels}
-              epgMap={epgMap}
-              activeId={effectiveChannel?.id ?? null}
-              onSelect={handleSelect}
+        {/* Tab-specific input areas */}
+        {activeTab === 'm3u' && (
+          <div className="mb-6">
+            <M3UInput
+              onLoad={m3u.loadFromUrl}
+              onFileLoad={m3u.loadFromFile}
+              loading={m3u.loading}
+              error={m3u.error}
+              sources={m3u.sources}
+              onRemoveSource={m3u.removeSource}
             />
-            <div ref={loadMoreRef} className="py-4 text-center text-sm text-gray-500">
-              {loading ? t('loading') : hasMore ? t('scrollMore') : t('allLoaded')}
-            </div>
+          </div>
+        )}
+
+        {activeTab === 'direct' && (
+          <div className="mb-6">
+            <DirectStreamInput
+              onPlay={handleDirectPlay}
+              recentUrls={direct.recentUrls}
+            />
+          </div>
+        )}
+
+        {/* Layout: left channel list + right EPG/player details */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Left: Channel list (or EPG guide for built-in) */}
+          <div className="lg:col-span-2">
+            {activeTab === 'builtin' ? (
+              <>
+                {/* Category filter */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button
+                    onClick={() => setActiveCategory('all')}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                      activeCategory === 'all'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`}
+                  >
+                    {t('all')}
+                  </button>
+                  {categories.slice(0, 12).map(({ category }) => (
+                    <button
+                      key={category}
+                      onClick={() => setActiveCategory(category)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                        activeCategory === category
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+                      }`}
+                    >
+                      {t(`categories.${category}`) !== `categories.${category}`
+                        ? t(`categories.${category}`)
+                        : category}
+                    </button>
+                  ))}
+                </div>
+
+                {/* EPG Guide */}
+                <LiveGuide
+                  channels={builtinChannels}
+                  epgMap={epgMap}
+                  activeId={effectiveChannel?.id ?? null}
+                  onSelect={(ch) => handleSelect(toChannelItem(ch))}
+                />
+                <div ref={loadMoreRef} className="py-4 text-center text-sm text-gray-500">
+                  {loading ? t('loading') : hasMore ? t('scrollMore') : t('allLoaded')}
+                </div>
+              </>
+            ) : (
+              /* M3U or Direct: unified channel list */
+              <ChannelList
+                channels={displayChannels}
+                activeId={effectiveChannel?.id ?? null}
+                onSelect={handleSelect}
+                favorites={favorites}
+                onToggleFavorite={toggleFavorite}
+                loading={activeTab === 'm3u' ? m3u.loading : false}
+              />
+            )}
           </div>
 
+          {/* Right: EPG details (built-in only) or channel info */}
           <div className="lg:col-span-1 space-y-4">
-            <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">{t('nowPlaying')}</h4>
-              {currentProgram ? (
+            {activeTab === 'builtin' && currentProgram && (
+              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
+                <h4 className="text-sm font-medium text-gray-400 mb-2">{t('nowPlaying')}</h4>
                 <div className="space-y-2">
                   <div className="flex items-start gap-3">
                     <div className="text-indigo-400 font-mono text-sm w-16 shrink-0">
@@ -288,12 +431,10 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
                     />
                   </div>
                 </div>
-              ) : (
-                <p className="text-gray-500">{t('epgEmpty')}</p>
-              )}
-            </div>
+              </div>
+            )}
 
-            {nextProgram && (
+            {activeTab === 'builtin' && nextProgram && (
               <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
                 <h4 className="text-sm font-medium text-gray-400 mb-2">{t('nextUp')}</h4>
                 <div className="flex items-start gap-3">
@@ -310,6 +451,28 @@ export default function LiveTvPage({ categories, searchTerm }: LiveTvPageProps) 
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* M3U tab: show channel info */}
+            {activeTab === 'm3u' && effectiveChannel && (
+              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
+                <h4 className="text-sm font-medium text-gray-400 mb-2">{t('channelInfo')}</h4>
+                <div className="space-y-2">
+                  <p className="font-semibold text-white">{effectiveChannel.name}</p>
+                  {'groupTitle' in effectiveChannel && effectiveChannel.groupTitle && (
+                    <p className="text-sm text-gray-400">{effectiveChannel.groupTitle}</p>
+                  )}
+                  <p className="text-xs text-gray-500 truncate">{effectiveChannel.streamUrl}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Direct tab: stream info */}
+            {activeTab === 'direct' && directUrl && (
+              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
+                <h4 className="text-sm font-medium text-gray-400 mb-2">{t('streamUrl')}</h4>
+                <p className="text-xs text-gray-300 break-all">{directUrl}</p>
               </div>
             )}
           </div>
