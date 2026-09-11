@@ -29,6 +29,15 @@ function isHttpUrl(url: string): boolean {
   return /^https?:\/\//i.test(url);
 }
 
+// 外部流走同源代理，绕开流服务器不带 CORS 头导致 hls.js 请求被浏览器拦截的问题；
+// 本地（localhost）地址无需代理，直接播放。
+function proxyUrlFor(url: string): string {
+  if (/^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|$|\/)/i.test(url)) {
+    return url;
+  }
+  return `/api/free-tv/proxy?url=${encodeURIComponent(url)}`;
+}
+
 export default function LiveTvPlayer({ channel, className = '', overlay }: LiveTvPlayerProps) {
   const t = useTranslations('live');
   const mediaRef = useRef<HTMLMediaElement>(null);
@@ -39,7 +48,8 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
 
-  const playableUrl = channel && isHttpUrl(channel.streamUrl) ? channel.streamUrl : null;
+  const playableUrl =
+    channel && isHttpUrl(channel.streamUrl) ? proxyUrlFor(channel.streamUrl) : null;
 
   const { startTracking, stopTracking, heartbeat } = usePlaybackTracking({
     contentType: 'live',
@@ -63,6 +73,9 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     let hls: Hls | null = null;
     let destroyed = false;
 
+    // 外部流走同源代理（CORS），本地地址直连
+    const streamUrl = proxyUrlFor(channel.streamUrl);
+
     const clearError = () => setErrorMessage(null);
     clearError();
     setIsSupported(true);
@@ -72,7 +85,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     // 会导致走原生分支而播放失败。改用 MediaSource 检测：Safari 无 MediaSource，走原生；其余走 hls.js。
     const hasMediaSource = typeof MediaSource !== 'undefined';
     if (!hasMediaSource) {
-      media.src = channel.streamUrl;
+      media.src = streamUrl;
       media.play().catch(() => setIsPlaying(false));
     } else {
       // 2) 其他瀏覽器：hls.js（動態導入，僅客戶端）
@@ -84,7 +97,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
             lowLatencyMode: true,
           });
           hlsRef.current = hls;
-          hls.loadSource(channel.streamUrl);
+          hls.loadSource(streamUrl);
           hls.attachMedia(mediaRef.current);
           hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
             mediaRef.current?.play().catch(() => setIsPlaying(false));
