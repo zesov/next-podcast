@@ -13,6 +13,8 @@
     "mute": "靜音",
     "unmute": "取消靜音",
     "fullscreen": "全屏",
+    "subtitlesOn": "開啟字幕",
+    "subtitlesOff": "關閉字幕",
     "tv": "電視",
     "radio": "電台",
     "epgTitle": "節目指南",

@@ -48,6 +48,10 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
   const hasStartedRef = useRef(false);
   // 直连失败后是否已兜底切到代理（每次切换频道重置）
   const fallbackUsedRef = useRef(false);
+  // 字幕轨道：源含 WebVTT/CC 轨道才显示字幕按钮（源有就顯示，無就唔顯示）
+  const [hasSubtitles, setHasSubtitles] = useState(false);
+  const [subtitleOn, setSubtitleOn] = useState(false);
+  const subtitleUserToggledRef = useRef(false);
 
   const playableUrl =
     channel && isHttpUrl(channel.streamUrl) ? proxyUrlFor(channel.streamUrl) : null;
@@ -97,10 +101,26 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     // 注意：不能用 canPlayType 判断 — Chrome headless 返回 'maybe'（truthy）但不真正支持 HLS，
     // 会导致走原生分支而播放失败。改用 MediaSource 检测：Safari 无 MediaSource，走原生；其余走 hls.js。
     const hasMediaSource = typeof MediaSource !== 'undefined';
+    // Safari 原生 HLS：字幕轨道从 video.textTracks 暴露（定义在分支外，cleanup 需移除监听）
+    const checkNativeTracks = () => {
+      const tracks = Array.from(media.textTracks).filter(
+        (tr) => tr.kind === 'subtitles' || tr.kind === 'captions'
+      );
+      setHasSubtitles(tracks.length > 0);
+      if (tracks.length > 0 && !subtitleUserToggledRef.current) {
+        tracks.forEach((tr) => {
+          tr.mode = 'showing';
+        });
+        setSubtitleOn(true);
+      }
+    };
     if (!hasMediaSource) {
       media.src = directUrl;
       media.play().catch(() => setIsPlaying(false));
       media.addEventListener('error', onNativeError);
+      checkNativeTracks();
+      media.textTracks.addEventListener('addtrack', checkNativeTracks);
+      media.textTracks.addEventListener('removetrack', checkNativeTracks);
     } else {
       // 2) 其他瀏覽器：hls.js（動態導入，僅客戶端）
       import('hls.js').then(({ default: HlsModule }) => {
@@ -116,6 +136,17 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
             hls.attachMedia(media);
             hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
               mediaRef.current?.play().catch(() => setIsPlaying(false));
+            });
+
+            // 字幕轨道检测（WebVTT）：有轨默认自动显示字幕
+            hls.on(HlsModule.Events.SUBTITLE_TRACKS_UPDATED, () => {
+              if (destroyed || !hls) return;
+              const tracks = hls.subtitleTracks || [];
+              setHasSubtitles(tracks.length > 0);
+              if (tracks.length > 0 && !subtitleUserToggledRef.current) {
+                hls.subtitleTrack = 0;
+                setSubtitleOn(true);
+              }
             });
 
             // HLS 錯誤處理
@@ -169,6 +200,8 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     return () => {
       destroyed = true;
       media.removeEventListener('error', onNativeError);
+      media.textTracks.removeEventListener('addtrack', checkNativeTracks);
+      media.textTracks.removeEventListener('removetrack', checkNativeTracks);
       if (hls) {
         hls.destroy();
         hlsRef.current = null;
@@ -270,6 +303,25 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     if (!media) return;
     media.muted = !media.muted;
     setIsMuted(media.muted);
+  };
+
+  // 字幕开关（hls.js 用 subtitleTrack；Safari 原生切 textTracks mode）
+  const toggleSubtitles = () => {
+    const media = mediaRef.current;
+    const hls = hlsRef.current;
+    subtitleUserToggledRef.current = true;
+    const next = !subtitleOn;
+    if (hls) {
+      hls.subtitleTrack = next ? 0 : -1;
+    } else if (media) {
+      const tracks = Array.from(media.textTracks).filter(
+        (tr) => tr.kind === 'subtitles' || tr.kind === 'captions'
+      );
+      tracks.forEach((tr) => {
+        tr.mode = next ? 'showing' : 'disabled';
+      });
+    }
+    setSubtitleOn(next);
   };
 
   // 全屏
@@ -376,6 +428,21 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
         >
           {isMuted ? <MuteIcon className="w-5 h-5" /> : <VolumeIcon className="w-5 h-5" />}
         </button>
+        {hasSubtitles && (
+          <button
+            onClick={toggleSubtitles}
+            disabled={!playableUrl}
+            className={`w-10 h-10 rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed ${
+              subtitleOn
+                ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                : 'bg-gray-700 hover:bg-gray-600 text-white'
+            }`}
+            aria-label={subtitleOn ? t('subtitlesOff') : t('subtitlesOn')}
+            title={subtitleOn ? t('subtitlesOff') : t('subtitlesOn')}
+          >
+            <CaptionsIcon className="w-5 h-5" />
+          </button>
+        )}
         <button
           onClick={toggleFullscreen}
           disabled={!playableUrl}
@@ -426,6 +493,14 @@ function FullscreenIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
       <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+    </svg>
+  );
+}
+
+function CaptionsIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM8.9 15.5c-1.6 0-2.9-1.3-2.9-3.5s1.3-3.5 2.9-3.5c1.1 0 2 .5 2.6 1.4l-1.5 1c-.3-.5-.6-.7-1-.7-.8 0-1.2.7-1.2 1.8s.4 1.8 1.2 1.8c.5 0 .8-.2 1.1-.7l1.5 1c-.6 1-1.5 1.4-2.7 1.4zm7.5 0c-1.6 0-2.9-1.3-2.9-3.5s1.3-3.5 2.9-3.5c1.1 0 2 .5 2.6 1.4l-1.5 1c-.3-.5-.6-.7-1-.7-.8 0-1.2.7-1.2 1.8s.4 1.8 1.2 1.8c.5 0 .8-.2 1.1-.7l1.5 1c-.6 1-1.5 1.4-2.7 1.4z" />
     </svg>
   );
 }

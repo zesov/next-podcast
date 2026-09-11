@@ -13,6 +13,8 @@
     "mute": "Mute",
     "unmute": "Unmute",
     "fullscreen": "Fullscreen",
+    "subtitlesOn": "Turn subtitles on",
+    "subtitlesOff": "Turn subtitles off",
     "tv": "TV",
     "radio": "Radio",
     "epgTitle": "Program Guide",
