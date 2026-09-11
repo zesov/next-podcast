@@ -23,6 +23,15 @@ function toChannelItem(ch: FreeTVChannel | M3UChannel): ChannelItem {
   };
 }
 
+// Fisher-Yates 乱序：打乱分类的固定顺序，让每个分类都有机会排前面（inline，不依赖外部状态）
+function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function LiveTvPage() {
   const t = useTranslations('live');
 
@@ -35,6 +44,7 @@ export default function LiveTvPage() {
   }, []);
 
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const [builtinChannels, setBuiltinChannels] = useState<FreeTVChannel[]>([]);
   const [builtinCategories, setBuiltinCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,8 +90,8 @@ export default function LiveTvPage() {
         offset += data.channels.length;
       }
       if (seq !== requestSeqRef.current) return;
-      const cats = [...new Set(all.map((c) => c.groupTitle).filter(Boolean))] as string[];
-      setBuiltinCategories(cats.sort());
+      const cats = shuffle([...new Set(all.map((c) => c.groupTitle).filter(Boolean))] as string[]);
+      setBuiltinCategories(cats);
       setBuiltinChannels(all);
       channelsFetchedAtRef.current = Date.now();
     } catch (e) {
@@ -301,19 +311,29 @@ export default function LiveTvPage() {
                     >
                       ★ {t('favorite')}
                     </button>
-                    {builtinCategories.slice(0, 10).map((category) => (
+                    {(showAllCategories ? builtinCategories : builtinCategories.slice(0, 10)).map(
+                      (category) => (
+                        <button
+                          key={category}
+                          onClick={() => setActiveCategory(category)}
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                            activeCategory === category
+                              ? 'bg-indigo-600 text-white'
+                              : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                          }`}
+                        >
+                          {category}
+                        </button>
+                      )
+                    )}
+                    {builtinCategories.length > 10 && (
                       <button
-                        key={category}
-                        onClick={() => setActiveCategory(category)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-                          activeCategory === category
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
-                        }`}
+                        onClick={() => setShowAllCategories((v) => !v)}
+                        className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap bg-gray-800 text-indigo-400 hover:text-white hover:bg-gray-700"
                       >
-                        {category}
+                        {showAllCategories ? t('collapse') : `${t('more')} (${builtinCategories.length - 10})`}
                       </button>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
