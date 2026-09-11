@@ -34,8 +34,8 @@ export default function Navbar() {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {[ 
                 { href: '/', key: 'browse', exact: true, label: t('browse') },
-                { href: '/peertube', key: 'peertube', exact: false, label: t('peertube') },
                 { href: '/live', key: 'live', exact: false, label: t('live') },
+                { href: '/peertube', key: 'peertube', exact: false, label: t('peertube') },
               ].map(({ href, key, exact, label }) => (
                 <Link 
                   key={key}
