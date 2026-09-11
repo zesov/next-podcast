@@ -101,7 +101,7 @@
       "loadedSources": "已加载的源"
     },
     "direct": {
-      "enterUrl": "输入 HLS 串流地址（如 https://example.com/stream.m3u8）",
+      "enterUrl": "输入 HLS 串流或 YouTube 直播地址（如 https://example.com/stream.m3u8）",
       "play": "播放",
       "recentUrls": "最近使用"
     },
