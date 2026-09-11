@@ -1,8 +1,8 @@
 'use client';
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
-import { Podcast } from 'lucide-react';
+import { Podcast, Menu, X } from 'lucide-react';
 import PeerTubeFiltersComp, { PeerTubeFiltersRef } from '@/components/PeerTube/PeerTubeFilters';
 import SearchInput from '@/components/SearchInput';
 
@@ -11,9 +11,9 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isPeertubePage = pathname?.startsWith('/peertube');
   const peertubeFiltersRef = useRef<PeerTubeFiltersRef | null>(null);
   const [isPeertubeFiltersOpen, setIsPeertubeFiltersOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // 切换语言（保持当前路径，仅替换语言前缀）
   const switchLocale = (locale: string) => {
@@ -29,13 +29,11 @@ export default function Navbar() {
               <Podcast className="text-gray-600 text-2xl mr-2" aria-hidden="true" />
               <span className="font-semibold text-xl">{t('brand')}</span>
             </div>
-<div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {[ 
                 { href: '/', key: 'browse', exact: true, label: t('browse') },
                 { href: '/peertube', key: 'peertube', exact: false, label: t('peertube') },
                 { href: '/live', key: 'live', exact: false, label: t('live') },
-                // { href: '/ranking', key: 'ranking', exact: false, label: t('ranking') },
-                // { href: '/categories', key: 'categories', exact: false, label: t('categories') }
               ].map(({ href, key, exact, label }) => (
                 <Link 
                   key={key}
@@ -52,6 +50,7 @@ export default function Navbar() {
               ))}
             </div>
           </div>
+          {/* 桌面端右侧控件 */}
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
             <SearchInput
               peertubeFiltersRef={peertubeFiltersRef}
@@ -75,8 +74,65 @@ export default function Navbar() {
               </button>
             </div>
           </div>
+          {/* 移动端汉堡菜单按钮 */}
+          <div className="flex items-center sm:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* 移动端下拉菜单 */}
+      {isMobileMenuOpen && (
+        <div className="sm:hidden border-t border-gray-200">
+          <div className="px-4 pt-2 pb-3 space-y-1">
+            {[ 
+              { href: '/', key: 'browse', exact: true, label: t('browse') },
+              { href: '/peertube', key: 'peertube', exact: false, label: t('peertube') },
+              { href: '/live', key: 'live', exact: false, label: t('live') },
+            ].map(({ href, key, exact, label }) => (
+              <Link
+                key={key}
+                href={href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  ${exact ? (pathname === href ? 'bg-indigo-50 border-indigo-500' : 'border-transparent') :
+                    (pathname?.startsWith(href) ? 'bg-indigo-50 border-indigo-500' : 'border-transparent')}
+                  block pl-3 pr-4 py-2 border-l-4 text-base font-medium text-gray-700 hover:bg-gray-50
+                `}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+          <div className="px-4 pb-3 border-t border-gray-200 pt-3 space-y-3">
+            <SearchInput
+              peertubeFiltersRef={peertubeFiltersRef}
+              onPeertubeFiltersOpenChange={setIsPeertubeFiltersOpen}
+            />
+            <div className="flex items-center space-x-1 text-sm font-medium">
+              <button
+                onClick={() => switchLocale('zh')}
+                className="px-2 py-1 rounded hover:bg-gray-100 text-gray-700"
+              >
+                中
+              </button>
+              <span className="text-gray-300">|</span>
+              <button
+                onClick={() => switchLocale('en')}
+                className="px-2 py-1 rounded hover:bg-gray-100 text-gray-700"
+              >
+                EN
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
