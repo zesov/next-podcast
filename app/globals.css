@@ -25,6 +25,27 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* 细滚动条工具类：scrollbar-thin（Tailwind v4 @utility，Firefox scrollbar-width + WebKit 6px 自定义） */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(100 116 139 / 0.5) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgb(100 116 139 / 0.5);
+    border-radius: 5px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(100 116 139 / 0.8);
+  }
+}
+
 /* 在全局样式文件中添加 */
 .slick-slide {
   transition: transform 0.3s ease;

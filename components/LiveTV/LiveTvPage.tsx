@@ -319,8 +319,8 @@ export default function LiveTvPage() {
               </div>
             )}
 
-            {/* 频道列表（滚动） */}
-            <div className="flex-1 min-h-[200px] max-h-[300px] overflow-y-auto">
+            {/* 频道列表（滚动，移动端压缩高度 + 细滚动条） */}
+            <div className="flex-1 min-h-[200px] max-h-[300px] md:min-h-[300px] md:max-h-[480px] overflow-y-auto scrollbar-thin">
               <ChannelList
                 channels={listItems}
                 activeId={effectiveChannel?.id ?? null}
