@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import type Hls from 'hls.js';
-import { LiveChannel } from './liveChannels';
 import { usePlaybackTracking } from '@/hooks/usePlaybackTracking';
 
 // 直播播放器（HLS 视频/音频）
@@ -275,7 +274,27 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
 
   // 全屏
   const toggleFullscreen = () => {
-    const container = mediaRef.current?.closest('.live-player-container') as HTMLElement | null;
+    const media = mediaRef.current;
+    const container = media?.closest('.live-player-container') as HTMLElement | null;
+    if (!media) return;
+
+    const anyMedia = media as any;
+    // iOS Safari：仅 <video> 支持全屏（webkitEnterFullscreen），容器 requestFullscreen 不可用
+    if (typeof anyMedia.webkitEnterFullscreen === 'function') {
+      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+        if (typeof anyMedia.webkitExitFullscreen === 'function') {
+          anyMedia.webkitExitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      } else {
+        anyMedia.webkitEnterFullscreen();
+      }
+      return;
+    }
+
     if (!container) return;
     if (document.fullscreenElement) {
       document.exitFullscreen();
