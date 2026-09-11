@@ -1,4 +1,5 @@
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -71,6 +72,7 @@ export default async function LocaleLayout({
         </NextIntlClientProvider>
         <PwaRegister />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
