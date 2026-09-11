@@ -1,16 +1,20 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { createRequire } from "module";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+// Import Next.js ESLint configurations directly
+const nextConfig = require("./node_modules/eslint-config-next/dist/index.js");
+const nextCoreWebVitalsConfig = require("./node_modules/eslint-config-next/dist/core-web-vitals.js");
+const nextTypescriptConfig = require("./node_modules/eslint-config-next/dist/typescript.js");
 
+// Combine the configurations
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...nextCoreWebVitalsConfig,
+  ...nextTypescriptConfig,
   {
     ignores: [
       "node_modules/**",

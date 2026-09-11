@@ -34,3 +34,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Important
+- 使用frontend-design skills
+- omo Delegated tasks任务分配10秒超时无反应后，用主agent直接执行
+- TDD测试优先开发模式优先
+- 不要自动 git commit，要由user明确提出先commit
+
+### browse playwright
+- 直接使用bash命令 uvx playwright 
