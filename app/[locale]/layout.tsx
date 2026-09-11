@@ -3,7 +3,9 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import type { Metadata, Viewport } from "next";
 import MockBootstrap from "@/components/MockBootstrap";
+import PwaRegister from "@/components/PwaRegister";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -20,6 +22,23 @@ const geistMono = Geist_Mono({
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
+
+export const viewport: Viewport = {
+  themeColor: "#4f46e5", // indigo-600，与 manifest 一致
+};
+
+export const metadata: Metadata = {
+  applicationName: "Next Podcast",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "播客",
+  },
+  icons: {
+    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
+};
 
 export default async function LocaleLayout({
   children,
@@ -49,6 +68,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <MockBootstrap>{children}</MockBootstrap>
         </NextIntlClientProvider>
+        <PwaRegister />
       </body>
     </html>
   );
