@@ -29,8 +29,8 @@ function isHttpUrl(url: string): boolean {
   return /^https?:\/\//i.test(url);
 }
 
-// 外部流走同源代理，绕开流服务器不带 CORS 头导致 hls.js 请求被浏览器拦截的问题；
-// 本地（localhost）地址无需代理，直接播放。
+// 同源代理仅作兜底：直连失败（典型：流服务器不带 CORS 头，hls.js 请求被浏览器拦截）时
+// 经 /api/free-tv/proxy 转发；本地（localhost）地址无需代理，直接播放。
 function proxyUrlFor(url: string): string {
   if (/^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|$|\/)/i.test(url)) {
     return url;
@@ -47,6 +47,8 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
   const [isSupported, setIsSupported] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
+  // 直连失败后是否已兜底切到代理（每次切换频道重置）
+  const fallbackUsedRef = useRef(false);
 
   const playableUrl =
     channel && isHttpUrl(channel.streamUrl) ? proxyUrlFor(channel.streamUrl) : null;
@@ -73,59 +75,88 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
     let hls: Hls | null = null;
     let destroyed = false;
 
-    // 外部流走同源代理（CORS），本地地址直连
-    const streamUrl = proxyUrlFor(channel.streamUrl);
+    // 直连优先；fatal 网络错误（典型：无 CORS 头被浏览器拦截）时兜底走同源代理，仅重试一次
+    const directUrl = channel.streamUrl;
+    const proxyUrl = proxyUrlFor(channel.streamUrl);
+    fallbackUsedRef.current = false;
 
     const clearError = () => setErrorMessage(null);
     clearError();
     setIsSupported(true);
+
+    // Safari 原生 HLS 播放失败（非本地地址且有代理可用）→ 切代理重试一次
+    const onNativeError = () => {
+      if (destroyed || fallbackUsedRef.current || proxyUrl === directUrl) return;
+      fallbackUsedRef.current = true;
+      clearError();
+      media.src = proxyUrl;
+      media.load();
+      media.play().catch(() => setIsPlaying(false));
+    };
 
     // 1) Safari 原生 HLS
     // 注意：不能用 canPlayType 判断 — Chrome headless 返回 'maybe'（truthy）但不真正支持 HLS，
     // 会导致走原生分支而播放失败。改用 MediaSource 检测：Safari 无 MediaSource，走原生；其余走 hls.js。
     const hasMediaSource = typeof MediaSource !== 'undefined';
     if (!hasMediaSource) {
-      media.src = streamUrl;
+      media.src = directUrl;
       media.play().catch(() => setIsPlaying(false));
+      media.addEventListener('error', onNativeError);
     } else {
       // 2) 其他瀏覽器：hls.js（動態導入，僅客戶端）
       import('hls.js').then(({ default: HlsModule }) => {
         if (destroyed || !mediaRef.current) return;
         if (HlsModule.isSupported()) {
-          hls = new HlsModule({
-            enableWorker: true,
-            lowLatencyMode: true,
-          });
-          hlsRef.current = hls;
-          hls.loadSource(streamUrl);
-          hls.attachMedia(mediaRef.current);
-          hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
-            mediaRef.current?.play().catch(() => setIsPlaying(false));
-          });
+          const createHls = (url: string) => {
+            hls = new HlsModule({
+              enableWorker: true,
+              lowLatencyMode: true,
+            });
+            hlsRef.current = hls;
+            hls.loadSource(url);
+            hls.attachMedia(media);
+            hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
+              mediaRef.current?.play().catch(() => setIsPlaying(false));
+            });
 
-          // HLS 錯誤處理
-          hls.on(HlsModule.Events.ERROR, (event, data) => {
-            if (destroyed) return;
-            if (data.fatal) {
-              switch (data.type) {
-                case HlsModule.ErrorTypes.NETWORK_ERROR:
-                  setErrorMessage(t('networkError'));
-                  break;
-                case HlsModule.ErrorTypes.MEDIA_ERROR:
-                  setErrorMessage(t('mediaError'));
-                  break;
-                case HlsModule.ErrorTypes.MUX_ERROR:
-                  setErrorMessage(t('muxError'));
-                  break;
-                default:
-                  setErrorMessage(t('hlsError'));
+            // HLS 錯誤處理
+            hls.on(HlsModule.Events.ERROR, (event, data) => {
+              if (destroyed) return;
+              if (data.fatal) {
+                // 直连 fatal 网络错误 → 兜底走代理重试一次（典型：流服务器无 CORS 头被浏览器拦截）
+                if (
+                  !fallbackUsedRef.current &&
+                  proxyUrl !== directUrl &&
+                  data.type === HlsModule.ErrorTypes.NETWORK_ERROR
+                ) {
+                  fallbackUsedRef.current = true;
+                  hls?.destroy();
+                  hlsRef.current = null;
+                  clearError();
+                  createHls(proxyUrl);
+                  return;
+                }
+                switch (data.type) {
+                  case HlsModule.ErrorTypes.NETWORK_ERROR:
+                    setErrorMessage(t('networkError'));
+                    break;
+                  case HlsModule.ErrorTypes.MEDIA_ERROR:
+                    setErrorMessage(t('mediaError'));
+                    break;
+                  case HlsModule.ErrorTypes.MUX_ERROR:
+                    setErrorMessage(t('muxError'));
+                    break;
+                  default:
+                    setErrorMessage(t('hlsError'));
+                }
+                setIsPlaying(false);
+              } else if (data.type === HlsModule.ErrorTypes.MEDIA_ERROR && hls) {
+                // 非致命媒體錯誤：嘗試恢復
+                hls.recoverMediaError();
               }
-              setIsPlaying(false);
-            } else if (data.type === HlsModule.ErrorTypes.MEDIA_ERROR && hls) {
-              // 非致命媒體錯誤：嘗試恢復
-              hls.recoverMediaError();
-            }
-          });
+            });
+          };
+          createHls(directUrl);
         } else {
           setIsSupported(false);
           setErrorMessage(t('unsupported'));
@@ -138,6 +169,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
 
     return () => {
       destroyed = true;
+      media.removeEventListener('error', onNativeError);
       if (hls) {
         hls.destroy();
         hlsRef.current = null;
