@@ -10,6 +10,7 @@ import DirectStreamInput from './DirectStreamInput';
 import { useM3UChannels } from '@/hooks/useM3UChannels';
 import { useDirectStream } from '@/hooks/useDirectStream';
 import { M3UChannel } from '@/lib/m3uParser';
+import { isYoutubeUrl } from '@/lib/youtube';
 
 type TabType = 'builtin' | 'm3u' | 'direct';
 
@@ -61,6 +62,8 @@ export default function LiveTvPage() {
     }
   });
   const [directUrl, setDirectUrl] = useState<string | null>(null);
+  // YouTube live 用官方 iframe 播放（替代 hls.js）
+  const [youtubeEmbed, setYoutubeEmbed] = useState<{ channelId: string; embedUrl: string } | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   const requestSeqRef = useRef(0);
@@ -109,6 +112,8 @@ export default function LiveTvPage() {
 
   useEffect(() => {
     localStorage.setItem('live:activeTab', activeTab);
+    // 切 tab 回到 builtin/m3u 时，YouTube embed 不再适用（hls.js 播放器接管）
+    setYoutubeEmbed(null);
   }, [activeTab]);
 
   // 搜索防抖
@@ -174,18 +179,58 @@ export default function LiveTvPage() {
 
   // === 频道选择 ===
   const handleSelect = useCallback(
-    (channel: ChannelItem) => {
+    async (channel: ChannelItem) => {
       const original =
         builtinChannels.find((c) => c.id === channel.id) ||
         m3u.channels.find((c) => c.id === channel.id);
-      if (original) setActiveChannel(original);
+      if (!original) return;
+      // Free-TV/M3U 里有些频道流地址是 YouTube live，需转成官方 iframe 播放
+      if (isYoutubeUrl(original.streamUrl)) {
+        try {
+          const res = await fetch(`/api/youtube/live?url=${encodeURIComponent(original.streamUrl)}`);
+          if (res.ok) {
+            const data = (await res.json()) as { channelId: string; embedUrl: string };
+            if (data.embedUrl) {
+              setYoutubeEmbed({ channelId: data.channelId, embedUrl: data.embedUrl });
+              setActiveChannel(original);
+              return;
+            }
+          }
+        } catch {
+          // 解析失败落回普通流（播放器会报 error）
+        }
+      }
+      setYoutubeEmbed(null);
+      setActiveChannel(original);
     },
     [builtinChannels, m3u.channels]
   );
 
   // === Direct 播放 ===
   const handleDirectPlay = useCallback(
-    (url: string) => {
+    async (url: string) => {
+      if (isYoutubeUrl(url)) {
+        try {
+          const res = await fetch(`/api/youtube/live?url=${encodeURIComponent(url)}`);
+          if (res.ok) {
+            const data = (await res.json()) as { channelId: string; embedUrl: string; name: string };
+            if (data.embedUrl) {
+              setYoutubeEmbed({ channelId: data.channelId, embedUrl: data.embedUrl });
+              setDirectUrl(url);
+              direct.playUrl(url);
+              setActiveChannel({
+                id: 'youtube-' + data.channelId,
+                name: data.name || 'YouTube Live',
+                streamUrl: url,
+              });
+              return;
+            }
+          }
+        } catch {
+          // 解析失败落回普通流播放（YouTube 流浏览器播不了，播放器会报 media error）
+        }
+      }
+      setYoutubeEmbed(null);
       setDirectUrl(url);
       direct.playUrl(url);
       setActiveChannel({
@@ -356,7 +401,19 @@ export default function LiveTvPage() {
           <main className="md:col-span-2 space-y-4">
             {/* 播放器 */}
             <div className="bg-gray-900 rounded-xl border border-gray-800 shadow-sm overflow-hidden">
-              <LiveTvPlayer channel={effectiveChannel} className="w-full" />
+              {youtubeEmbed ? (
+                <div className="aspect-video w-full">
+                  <iframe
+                    src={youtubeEmbed.embedUrl}
+                    title={activeChannel?.name ?? 'YouTube Live'}
+                    className="w-full h-full"
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <LiveTvPlayer channel={effectiveChannel} className="w-full" />
+              )}
             </div>
 
             {/* 节目信息 */}
