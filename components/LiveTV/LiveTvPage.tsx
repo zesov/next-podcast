@@ -13,8 +13,6 @@ import { M3UChannel } from '@/lib/m3uParser';
 
 type TabType = 'builtin' | 'm3u' | 'direct';
 
-const PAGE_SIZE = 48;
-
 function toChannelItem(ch: FreeTVChannel | M3UChannel): ChannelItem {
   return {
     id: ch.id,
@@ -39,7 +37,6 @@ export default function LiveTvPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [builtinChannels, setBuiltinChannels] = useState<FreeTVChannel[]>([]);
   const [builtinCategories, setBuiltinCategories] = useState<string[]>([]);
-  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -56,16 +53,43 @@ export default function LiveTvPage() {
   const [directUrl, setDirectUrl] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
-  const loadMoreRef = useRef<HTMLDivElement>(null);
   const requestSeqRef = useRef(0);
+  const channelsFetchedAtRef = useRef(0);
+  const CHANNELS_CACHE_TTL = 30 * 60 * 1000;
 
-  // EPG 客户端缓存：channelId → { epg, fetchedAt }
   const epgCacheRef = useRef<Map<string, { epg: EpgSlot[]; fetchedAt: number }>>(new Map());
-  const EPG_CACHE_TTL = 15 * 60 * 1000; // 15 分钟过期
+  const EPG_CACHE_TTL = 15 * 60 * 1000;
 
-  // M3U / Direct hooks
   const m3u = useM3UChannels();
   const direct = useDirectStream();
+
+  const loadAllChannels = useCallback(async () => {
+    if (Date.now() - channelsFetchedAtRef.current < CHANNELS_CACHE_TTL) return;
+    const seq = ++requestSeqRef.current;
+    setLoading(true);
+    try {
+      let offset = 0;
+      const all: FreeTVChannel[] = [];
+      while (true) {
+        const res = await fetch(`/api/free-tv/channels?offset=${offset}&limit=9999`);
+        if (!res.ok) break;
+        const data = (await res.json()) as { channels: FreeTVChannel[]; hasMore: boolean };
+        if (seq !== requestSeqRef.current) return;
+        all.push(...data.channels);
+        if (!data.hasMore) break;
+        offset += data.channels.length;
+      }
+      if (seq !== requestSeqRef.current) return;
+      const cats = [...new Set(all.map((c) => c.groupTitle).filter(Boolean))] as string[];
+      setBuiltinCategories(cats.sort());
+      setBuiltinChannels(all);
+      channelsFetchedAtRef.current = Date.now();
+    } catch (e) {
+      console.error('load all channels failed', e);
+    } finally {
+      if (seq === requestSeqRef.current) setLoading(false);
+    }
+  }, []);
 
   // 分钟级 EPG 刷新 + Tab 持久化
   useEffect(() => {
@@ -94,61 +118,11 @@ export default function LiveTvPage() {
     });
   }, []);
 
-  const loadPage = useCallback(
-    async (offset: number, category: string, reset: boolean, search: string) => {
-      const seq = ++requestSeqRef.current;
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ offset: String(offset), limit: String(PAGE_SIZE) });
-        if (category !== 'all') params.set('category', category);
-        if (search) params.set('search', search);
-        const res = await fetch(`/api/free-tv/channels?${params.toString()}`);
-        if (!res.ok) throw new Error('fetch failed');
-        const data = (await res.json()) as {
-          channels: FreeTVChannel[];
-          total: number;
-          hasMore: boolean;
-        };
-        if (seq !== requestSeqRef.current) return;
-        if (reset && category === 'all' && !search) {
-          const cats = [...new Set(data.channels.map((c) => c.groupTitle).filter(Boolean))] as string[];
-          setBuiltinCategories(cats.sort());
-        }
-        setBuiltinChannels((prev) => (reset ? data.channels : [...prev, ...data.channels]));
-        setHasMore(data.hasMore);
-      } catch (e) {
-        console.error('load channels failed', e);
-      } finally {
-        if (seq === requestSeqRef.current) setLoading(false);
-      }
-    },
-    []
-  );
-
-  // 分类或搜索变化时重置并加载第一页
+  // 频道数据：启动时一次性加载，All 分类按过期时间决定是否刷新
   useEffect(() => {
     if (activeTab !== 'builtin') return;
-    setBuiltinChannels([]);
-    setHasMore(true);
-    loadPage(0, activeCategory, true, debouncedSearch);
-  }, [activeCategory, debouncedSearch, loadPage, activeTab]);
-
-  // Built-in 无限滚动
-  useEffect(() => {
-    if (activeTab !== 'builtin') return;
-    const sentinel = loadMoreRef.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          loadPage(builtinChannels.length, activeCategory, false, debouncedSearch);
-        }
-      },
-      { rootMargin: '200px' }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, loading, builtinChannels.length, activeCategory, loadPage, activeTab, debouncedSearch]);
+    loadAllChannels();
+  }, [activeTab, loadAllChannels]);
 
   // 选中频道的 EPG（仅 Built-in）— 带客户端缓存，过期或节目全部过时则重新拉取
   const effectiveChannel = activeChannel ?? builtinChannels[0] ?? null;
@@ -215,8 +189,8 @@ export default function LiveTvPage() {
 
   // === 列表数据（按 Tab）===
   const listItems: ChannelItem[] = useMemo(() => {
+    const q = searchInput.trim().toLowerCase();
     if (activeTab === 'm3u') {
-      const q = searchInput.trim().toLowerCase();
       const filtered = q
         ? m3u.channels.filter(
             (c) => c.name.toLowerCase().includes(q) || (c.groupTitle || '').toLowerCase().includes(q)
@@ -224,8 +198,19 @@ export default function LiveTvPage() {
         : m3u.channels;
       return filtered.map(toChannelItem);
     }
-    return builtinChannels.map(toChannelItem);
-  }, [activeTab, builtinChannels, m3u.channels, searchInput]);
+    let filtered = builtinChannels.map(toChannelItem);
+    if (activeCategory === 'favorite') {
+      filtered = filtered.filter((ch) => favorites.has(ch.id));
+    } else if (activeCategory !== 'all') {
+      filtered = filtered.filter((ch) => ch.groupTitle === activeCategory);
+    }
+    if (q) {
+      filtered = filtered.filter(
+        (ch) => ch.name.toLowerCase().includes(q) || (ch.groupTitle || '').toLowerCase().includes(q)
+      );
+    }
+    return filtered;
+  }, [activeTab, builtinChannels, m3u.channels, searchInput, activeCategory, favorites]);
 
   const listLoading = activeTab === 'builtin' ? loading : m3u.loading;
   const listEmptyText =
@@ -306,6 +291,16 @@ export default function LiveTvPage() {
                     >
                       {t('all')}
                     </button>
+                    <button
+                      onClick={() => setActiveCategory('favorite')}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                        activeCategory === 'favorite'
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                      }`}
+                    >
+                      ★ {t('favorite')}
+                    </button>
                     {builtinCategories.slice(0, 10).map((category) => (
                       <button
                         key={category}
@@ -334,11 +329,6 @@ export default function LiveTvPage() {
                 onToggleFavorite={toggleFavorite}
                 loading={listLoading}
               />
-              {activeTab === 'builtin' && (
-                <div ref={loadMoreRef} className="py-3 text-center text-xs text-gray-500">
-                  {loading ? t('loading') : hasMore ? t('scrollMore') : t('allLoaded')}
-                </div>
-              )}
             </div>
           </aside>
 

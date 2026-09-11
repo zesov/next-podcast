@@ -3,6 +3,7 @@
     "title": "📺 Live TV",
     "subtitle": "Free live streaming channels",
     "all": "All",
+    "favorite": "Favorite",
     "channelCount": "{count} channels",
     "selectChannel": "Select a channel to start 👈",
     "selectHint": "Choose a channel to play",
@@ -83,7 +84,7 @@
       "epgSource": "EPG from {url}"
     },
     "tabs": {
-      "builtin": "Built-in",
+      "builtin": "Free TV",
       "m3u": "M3U Playlist",
       "direct": "Direct Stream"
     },

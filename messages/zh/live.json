@@ -3,6 +3,7 @@
     "title": "📺 直播",
     "subtitle": "免费直播频道",
     "all": "全部",
+    "favorite": "收藏",
     "channelCount": "{count} 個頻道",
     "selectChannel": "请选择一个频道开始观看 👈",
     "selectHint": "選擇左側頻道，即時播放",
@@ -83,7 +84,7 @@
       "epgSource": "节目表来源：{url}"
     },
     "tabs": {
-      "builtin": "内置",
+      "builtin": "内置频道",
       "m3u": "M3U 播放列表",
       "direct": "直接串流"
     },

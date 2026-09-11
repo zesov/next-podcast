@@ -289,7 +289,9 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
 
       {(!isSupported || errorMessage) && channel && (
         <p className="px-4 py-2 text-sm text-yellow-400 bg-gray-800">
-          {errorMessage || playableUrl ? t('unsupported') : `${t('nonHttpStream')} (${channel.streamUrl.slice(0, 30)}…)`}
+          {!playableUrl
+            ? `${t('nonHttpStream')} (${channel.streamUrl.slice(0, 30)}…)`
+            : errorMessage || t('unsupported')}
         </p>
       )}
 
