@@ -244,10 +244,10 @@ export default function LiveTvPage() {
           </div>
         </nav>
 
-        {/* 左右分栏：左列表 + 右播放器 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* 左右分栏：左列表 + 右播放器（md 起并排——笔记本常见 ~1000px CSS 宽也要 PC 布局） */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* ===== 左侧面板 ===== */}
-          <aside className="lg:col-span-1 bg-gray-900 rounded-xl border border-gray-800 shadow-sm flex flex-col overflow-hidden">
+          <aside className="md:col-span-1 bg-gray-900 rounded-xl border border-gray-800 shadow-sm flex flex-col overflow-hidden">
             {/* M3U 输入区（仅 M3U tab） */}
             {activeTab === 'm3u' && (
               <div className="p-4 border-b border-gray-800">
@@ -333,7 +333,7 @@ export default function LiveTvPage() {
           </aside>
 
           {/* ===== 右侧面板 ===== */}
-          <main className="lg:col-span-2 space-y-4">
+          <main className="md:col-span-2 space-y-4">
             {/* 播放器 */}
             <div className="bg-gray-900 rounded-xl border border-gray-800 shadow-sm overflow-hidden">
               <LiveTvPlayer channel={effectiveChannel} className="w-full" />
