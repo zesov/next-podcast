@@ -107,6 +107,7 @@
     },
     "channelInfo": "Channel Info",
     "streamUrl": "Stream URL",
-    "searchPlaceholder": "Search channels…"
+    "searchPlaceholder": "Search channels…",
+    "clearSearch": "Clear search"
   }
 }

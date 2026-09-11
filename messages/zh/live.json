@@ -107,6 +107,7 @@
     },
     "channelInfo": "频道信息",
     "streamUrl": "串流地址",
-    "searchPlaceholder": "搜索频道…"
+    "searchPlaceholder": "搜索频道…",
+    "clearSearch": "清除搜索"
   }
 }

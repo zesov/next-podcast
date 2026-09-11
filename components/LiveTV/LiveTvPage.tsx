@@ -327,13 +327,25 @@ export default function LiveTvPage() {
             {/* 搜索 + 分类（Built-in / M3U tab 显示） */}
             {activeTab !== 'direct' && (
               <div className="p-3 border-b border-gray-800 space-y-2">
-                <input
-                  type="search"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder={t('searchPlaceholder')}
-                  className="w-full px-3 py-1.5 rounded-md bg-gray-800 border border-gray-700 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-                />
+                <div className="relative">
+                  <input
+                    type="search"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder={t('searchPlaceholder')}
+                    className="w-full px-3 py-1.5 pr-8 rounded-md bg-gray-800 border border-gray-700 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                  />
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchInput('')}
+                      aria-label={t('clearSearch')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-sm leading-none"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 {activeTab === 'builtin' && (
                   <div className="flex flex-wrap gap-1.5">
                     <button
