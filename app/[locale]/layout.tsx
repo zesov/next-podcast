@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -69,6 +70,7 @@ export default async function LocaleLayout({
           <MockBootstrap>{children}</MockBootstrap>
         </NextIntlClientProvider>
         <PwaRegister />
+        <Analytics />
       </body>
     </html>
   );
