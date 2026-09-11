@@ -320,7 +320,7 @@ export default function LiveTvPage() {
             )}
 
             {/* 频道列表（滚动） */}
-            <div className="flex-1 min-h-[300px] max-h-[480px] overflow-y-auto">
+            <div className="flex-1 min-h-[200px] max-h-[300px] overflow-y-auto">
               <ChannelList
                 channels={listItems}
                 activeId={effectiveChannel?.id ?? null}
