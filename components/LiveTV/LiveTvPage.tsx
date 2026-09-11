@@ -48,6 +48,10 @@ export default function LiveTvPage() {
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [builtinChannels, setBuiltinChannels] = useState<FreeTVChannel[]>([]);
   const [builtinCategories, setBuiltinCategories] = useState<string[]>([]);
+  const visibleCategories = useMemo(() => {
+    if (showAllCategories) return builtinCategories;
+    return shuffle([...builtinCategories]).slice(0, 10);
+  }, [builtinCategories, showAllCategories]);
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -93,7 +97,7 @@ export default function LiveTvPage() {
         offset += data.channels.length;
       }
       if (seq !== requestSeqRef.current) return;
-      const cats = shuffle([...new Set(all.map((c) => c.groupTitle).filter(Boolean))] as string[]);
+      const cats = [...new Set(all.map((c) => c.groupTitle).filter(Boolean))] as string[];
       setBuiltinCategories(cats);
       setBuiltinChannels(all);
       channelsFetchedAtRef.current = Date.now();
@@ -368,7 +372,7 @@ export default function LiveTvPage() {
                     >
                       ★ {t('favorite')}
                     </button>
-                    {(showAllCategories ? builtinCategories : builtinCategories.slice(0, 10)).map(
+                    {visibleCategories.map(
                       (category) => (
                         <button
                           key={category}
