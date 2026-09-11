@@ -26,8 +26,10 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <Podcast className="text-gray-600 text-2xl mr-2" aria-hidden="true" />
-              <span className="font-semibold text-xl">{t('brand')}</span>
+              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center">
+                <Podcast className="text-gray-600 text-2xl mr-2" aria-hidden="true" />
+                <span className="font-semibold text-xl">{t('brand')}</span>
+              </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {[ 
