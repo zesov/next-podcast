@@ -50,7 +50,7 @@ export default function LiveTvPage() {
   const [builtinCategories, setBuiltinCategories] = useState<string[]>([]);
   const visibleCategories = useMemo(() => {
     if (showAllCategories) return builtinCategories;
-    return shuffle([...builtinCategories]).slice(0, 10);
+    return shuffle([...builtinCategories]).slice(0, 6);
   }, [builtinCategories, showAllCategories]);
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
@@ -72,7 +72,7 @@ export default function LiveTvPage() {
 
   const requestSeqRef = useRef(0);
   const channelsFetchedAtRef = useRef(0);
-  const CHANNELS_CACHE_TTL = 30 * 60 * 1000;
+  const CHANNELS_CACHE_TTL = 24 * 60 * 60 * 1000;
 
   const epgCacheRef = useRef<Map<string, { epg: EpgSlot[]; fetchedAt: number }>>(new Map());
   const EPG_CACHE_TTL = 15 * 60 * 1000;
