@@ -31,31 +31,31 @@ export default function LiveEpw({ channel, epg, loading = false }: LiveEpwProps)
 
   if (!channel) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow">
         <h3 className="font-bold mb-2">{t('epgTitle')}</h3>
-        <p className="text-sm text-gray-500">{t('epgEmpty')}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t('epgEmpty')}</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow">
         <h3 className="font-bold mb-2">
           {t('epgTitle')} · {channel.name}
         </h3>
-        <p className="text-sm text-gray-500">{t('loading')}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t('loading')}</p>
       </div>
     );
   }
 
   if (epg.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow">
         <h3 className="font-bold mb-2">
           {t('epgTitle')} · {channel.name}
         </h3>
-        <p className="text-sm text-gray-500">{t('epgEmpty')}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t('epgEmpty')}</p>
       </div>
     );
   }
@@ -63,12 +63,12 @@ export default function LiveEpw({ channel, epg, loading = false }: LiveEpwProps)
   const activeIndex = currentIndex === -1 ? 0 : currentIndex;
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow">
+    <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold">
           {t('epgTitle')} · {channel.name}
         </h3>
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-400 dark:text-gray-500">
           {epg.length} {t('epgCount')}
         </span>
       </div>
@@ -79,20 +79,20 @@ export default function LiveEpw({ channel, epg, loading = false }: LiveEpwProps)
             <li
               key={`${slot.start}-${index}`}
               className={`rounded-lg p-3 border ${
-                isActive ? 'bg-indigo-50 border-indigo-300' : 'border-gray-100'
+                isActive ? 'bg-indigo-50 border-indigo-300' : 'border-gray-100 dark:border-gray-800'
               }`}
             >
               <div className="flex items-start">
-                <span className="text-sm font-medium text-indigo-600 w-16 shrink-0">
+                <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400 w-16 shrink-0">
                   {fmtTime(slot.start)}
                   {slot.end > slot.start && (
-                    <span className="text-gray-400">-{fmtTime(slot.end)}</span>
+                    <span className="text-gray-400 dark:text-gray-500">-{fmtTime(slot.end)}</span>
                   )}
                 </span>
                 <div className="flex-1">
                   <p
                     className={`text-sm font-semibold ${
-                      isActive ? 'text-indigo-800' : 'text-gray-900'
+                      isActive ? 'text-indigo-800' : 'text-gray-900 dark:text-gray-100'
                     }`}
                   >
                     {slot.title || t('noTitle')}
@@ -108,7 +108,7 @@ export default function LiveEpw({ channel, epg, loading = false }: LiveEpwProps)
                     )}
                   </p>
                   {slot.description && (
-                    <p className="text-xs text-gray-500 mt-0.5 truncate">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                       {slot.description}
                     </p>
                   )}

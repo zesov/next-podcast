@@ -20,13 +20,13 @@ export default function LiveChannelGrid({ channels, activeId, onSelect }: LiveCh
           <button
             key={channel.id}
             onClick={() => onSelect(channel)}
-            className={`group bg-white rounded-lg overflow-hidden border-2 transition-all text-left ${
+            className={`group bg-white dark:bg-gray-900 rounded-lg overflow-hidden border-2 transition-all text-left ${
               active
                 ? 'border-indigo-500 shadow-md'
                 : 'border-transparent hover:border-gray-200 hover:shadow'
             }`}
           >
-            <div className="bg-gray-100 aspect-video flex items-center justify-center relative">
+            <div className="bg-gray-100 dark:bg-gray-800 aspect-video flex items-center justify-center relative">
               {channel.logo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -40,12 +40,12 @@ export default function LiveChannelGrid({ channels, activeId, onSelect }: LiveCh
                   className="w-full h-full object-contain p-2"
                 />
               ) : null}
-              <span className={`text-4xl font-bold text-gray-400 group-hover:text-indigo-500 ${channel.logo ? 'hidden' : ''}`}>
+              <span className={`text-4xl font-bold text-gray-400 dark:text-gray-500 group-hover:text-indigo-500 ${channel.logo ? 'hidden' : ''}`}>
                 {channel.name.slice(0, 1)}
               </span>
               {active && (
                 <span className="absolute top-2 left-2 flex items-center space-x-1 bg-red-600 text-white text-xs px-2 py-0.5 rounded">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-gray-900 animate-pulse"></span>
                   {t('live')}
                 </span>
               )}
@@ -56,8 +56,8 @@ export default function LiveChannelGrid({ channels, activeId, onSelect }: LiveCh
               )}
             </div>
             <div className="p-2">
-              <p className="text-sm font-semibold text-gray-900 truncate">{channel.name}</p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{channel.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {channel.category}
                 {channel.language ? ` · ${channel.language.toUpperCase()}` : ''}
               </p>

@@ -357,23 +357,23 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
 
   if (!channel) {
     return (
-      <div className="bg-gray-900 rounded-xl p-8 text-center text-gray-400">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-8 text-center text-gray-500 dark:text-gray-400">
         <p className="text-lg">{t("selectChannel")}</p>
-        <p className="mt-2 text-sm text-gray-500">{t("selectHint")}</p>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t("selectHint")}</p>
       </div>
     );
   }
 
   return (
-    <div className={`live-player-container bg-gray-900 rounded-xl overflow-hidden ${className}`}>
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
+    <div className={`live-player-container bg-white dark:bg-gray-900 rounded-xl overflow-hidden ${className}`}>
+      <div className="flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-800">
         <div className="flex items-center space-x-2">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-          <span className="text-sm font-semibold text-white">{t("live")}</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">{t("live")}</span>
         </div>
-        <span className="text-sm text-gray-300 truncate">
+        <span className="text-sm text-gray-600 dark:text-gray-300 truncate">
           {channel.name}
-          {channel.number != null && <span className="ml-2 text-gray-500">CH {channel.number}</span>}
+          {channel.number != null && <span className="ml-2 text-gray-500 dark:text-gray-400">CH {channel.number}</span>}
         </span>
       </div>
 
@@ -404,18 +404,18 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
       )}
 
       {(!isSupported || errorMessage) && channel && (
-        <p className="px-4 py-2 text-sm text-yellow-400 bg-gray-800">
+        <p className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 dark:text-yellow-400 dark:bg-gray-800">
           {!playableUrl
             ? `${t('nonHttpStream')} (${channel.streamUrl.slice(0, 30)}…)`
             : errorMessage || t('unsupported')}
         </p>
       )}
 
-      <div className="flex items-center justify-center space-x-4 px-4 py-3 bg-gray-800">
+      <div className="flex items-center justify-center space-x-4 px-4 py-3 bg-gray-100 dark:bg-gray-800">
         <button
           onClick={togglePlay}
           disabled={!playableUrl}
-          className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-12 h-12 rounded-full bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={isPlaying ? t("pause") : t("play")}
         >
           {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
@@ -423,7 +423,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
         <button
           onClick={toggleMute}
           disabled={!playableUrl}
-          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={isMuted ? t("unmute") : t("mute")}
         >
           {isMuted ? <MuteIcon className="w-5 h-5" /> : <VolumeIcon className="w-5 h-5" />}
@@ -435,7 +435,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
             className={`w-10 h-10 rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed ${
               subtitleOn
                 ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                : 'bg-gray-700 hover:bg-gray-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-white'
             }`}
             aria-label={subtitleOn ? t('subtitlesOff') : t('subtitlesOn')}
             title={subtitleOn ? t('subtitlesOff') : t('subtitlesOn')}
@@ -446,7 +446,7 @@ export default function LiveTvPlayer({ channel, className = '', overlay }: LiveT
         <button
           onClick={toggleFullscreen}
           disabled={!playableUrl}
-          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={t("fullscreen")}
         >
           <FullscreenIcon className="w-5 h-5" />

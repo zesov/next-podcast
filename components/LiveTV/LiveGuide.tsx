@@ -46,7 +46,7 @@ function AiringsStrip({
   if (visible.length === 0) {
     return (
       <div className="relative h-16 w-full">
-        <span className="absolute inset-0 flex items-center px-3 text-xs text-gray-500">
+        <span className="absolute inset-0 flex items-center px-3 text-xs text-gray-500 dark:text-gray-400">
           —
         </span>
       </div>
@@ -102,7 +102,7 @@ export default function LiveGuide({ channels, epgMap, activeId, onSelect }: Live
     <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-800">
       {/* 时间轴 */}
       <div className="flex border-b border-gray-800 bg-gray-800/60">
-        <div className="w-36 sm:w-44 shrink-0 px-3 py-2 flex items-center text-xs font-semibold text-gray-400">
+        <div className="w-36 sm:w-44 shrink-0 px-3 py-2 flex items-center text-xs font-semibold text-gray-400 dark:text-gray-500">
           {t('epgTitle')}
         </div>
         <div className="relative flex-1 h-full overflow-x-auto">
@@ -110,7 +110,7 @@ export default function LiveGuide({ channels, epgMap, activeId, onSelect }: Live
             {intervals.map((tick) => (
               <div
                 key={tick}
-                className="absolute top-0 bottom-0 border-l border-gray-700/60 px-2 text-[11px] text-gray-500 flex items-center whitespace-nowrap"
+                className="absolute top-0 bottom-0 border-l border-gray-700/60 px-2 text-[11px] text-gray-500 dark:text-gray-400 flex items-center whitespace-nowrap"
                 style={{ left: `${((tick - guideStart) / windowMs) * 100}%` }}
               >
                 {fmtTime(tick)}
@@ -153,19 +153,19 @@ export default function LiveGuide({ channels, epgMap, activeId, onSelect }: Live
                     className="w-9 h-6 object-contain shrink-0"
                   />
                 ) : null}
-                <div className={`w-9 h-6 shrink-0 rounded bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300 ${channel.logo ? 'hidden' : ''}`}>
+                <div className={`w-9 h-6 shrink-0 rounded bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300 dark:text-gray-600 ${channel.logo ? 'hidden' : ''}`}>
                   {channel.name.slice(0, 1)}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-white truncate">{channel.name}</p>
-                  <p className="text-[11px] text-gray-500 truncate">
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                     {channel.number != null && `CH ${channel.number} · `}
                     {channel.category}
                   </p>
                 </div>
                 {active && (
                   <span className="ml-auto shrink-0 flex items-center gap-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded">
-                    <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                    <span className="w-1 h-1 rounded-full bg-white dark:bg-gray-900 animate-pulse" />
                     {t('live')}
                   </span>
                 )}
@@ -185,7 +185,7 @@ export default function LiveGuide({ channels, epgMap, activeId, onSelect }: Live
         })}
 
         {channels.length === 0 && (
-          <div className="px-3 py-8 text-center text-sm text-gray-500">
+          <div className="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
             {t('selectChannel')}
           </div>
         )}

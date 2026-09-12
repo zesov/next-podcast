@@ -35,7 +35,7 @@ export default function ChannelList({
 
   if (channels.length === 0 && !loading) {
     return (
-      <div className="p-8 text-center text-gray-500 text-sm">
+      <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
         {t('selectChannel')}
       </div>
     );
@@ -52,8 +52,8 @@ export default function ChannelList({
             onClick={() => onSelect(ch)}
             className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
               active
-                ? 'bg-indigo-900/30 border border-indigo-600/40'
-                : 'hover:bg-gray-800/60 border border-transparent'
+                ? 'bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-600/40'
+                : 'hover:bg-gray-100 dark:hover:bg-gray-800/60 border border-transparent'
             }`}
           >
             {/* Logo */}
@@ -69,22 +69,22 @@ export default function ChannelList({
                 className="w-8 h-6 object-contain shrink-0"
               />
             ) : null}
-            <div className={`w-8 h-6 shrink-0 rounded bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300 ${ch.logo ? 'hidden' : ''}`}>
+            <div className={`w-8 h-6 shrink-0 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-600 ${ch.logo ? 'hidden' : ''}`}>
               {ch.name.slice(0, 1)}
             </div>
 
             {/* Name + group */}
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-white truncate">{ch.name}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{ch.name}</p>
               {ch.groupTitle && (
-                <p className="text-[11px] text-gray-500 truncate">{ch.groupTitle}</p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{ch.groupTitle}</p>
               )}
             </div>
 
             {/* Live indicator */}
             {active && (
               <span className="shrink-0 flex items-center gap-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded">
-                <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                <span className="w-1 h-1 rounded-full bg-white dark:bg-gray-900 animate-pulse" />
                 {t('live')}
               </span>
             )}
@@ -95,11 +95,11 @@ export default function ChannelList({
                 e.stopPropagation();
                 onToggleFavorite(ch.id);
               }}
-              className="shrink-0 p-1 rounded hover:bg-gray-700 transition-colors"
+              className="shrink-0 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <svg
-                className={`w-4 h-4 ${isFavorite ? 'text-yellow-400 fill-current' : 'text-gray-500'}`}
+                className={`w-4 h-4 ${isFavorite ? 'text-yellow-400 fill-current' : 'text-gray-500 dark:text-gray-400'}`}
                 viewBox="0 0 24 24"
                 fill={isFavorite ? 'currentColor' : 'none'}
                 stroke="currentColor"
@@ -113,7 +113,7 @@ export default function ChannelList({
       })}
 
       {loading && (
-        <div className="p-4 text-center text-sm text-gray-500">{t('loading')}</div>
+        <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">{t('loading')}</div>
       )}
     </div>
   );

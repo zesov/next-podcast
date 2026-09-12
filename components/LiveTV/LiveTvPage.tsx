@@ -276,17 +276,17 @@ export default function LiveTvPage() {
     activeTab === 'm3u' && m3u.error ? t('m3u.noChannels') : t('selectChannel');
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* 标题（居中，m3u8player 风格） */}
         <header className="text-center">
           <h1 className="text-2xl sm:text-3xl font-bold">{t('title')}</h1>
-          <p className="mt-1 text-sm text-gray-400">{t('subtitle')}</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </header>
 
         {/* Tab 切换（居中） */}
         <nav className="flex justify-center">
-          <div className="inline-flex bg-gray-900 rounded-lg p-1">
+          <div className="inline-flex bg-gray-200 dark:bg-gray-900 rounded-lg p-1">
             {(['builtin', 'm3u', 'direct'] as TabType[]).map((tab) => (
               <button
                 key={tab}
@@ -294,7 +294,7 @@ export default function LiveTvPage() {
                 className={`px-5 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === tab
                     ? 'bg-indigo-600 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800'
                 }`}
               >
                 {t(`tabs.${tab}`)}
@@ -306,10 +306,10 @@ export default function LiveTvPage() {
         {/* 左右分栏：左列表 + 右播放器（md 起并排——笔记本常见 ~1000px CSS 宽也要 PC 布局） */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* ===== 左侧面板 ===== */}
-          <aside className="md:col-span-1 bg-gray-900 rounded-xl border border-gray-800 shadow-sm flex flex-col overflow-hidden">
+          <aside className="md:col-span-1 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
             {/* M3U 输入区（仅 M3U tab） */}
             {activeTab === 'm3u' && (
-              <div className="p-4 border-b border-gray-800">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-800">
                 <M3UInput
                   onLoad={m3u.loadFromUrl}
                   onFileLoad={m3u.loadFromFile}
@@ -323,28 +323,28 @@ export default function LiveTvPage() {
 
             {/* Direct 输入区（仅 Direct tab） */}
             {activeTab === 'direct' && (
-              <div className="p-4 border-b border-gray-800">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-800">
                 <DirectStreamInput onPlay={handleDirectPlay} recentUrls={direct.recentUrls} />
               </div>
             )}
 
             {/* 搜索 + 分类（Built-in / M3U tab 显示） */}
             {activeTab !== 'direct' && (
-              <div className="p-3 border-b border-gray-800 space-y-2">
+              <div className="p-3 border-b border-gray-200 dark:border-gray-800 space-y-2">
                 <div className="relative">
                   <input
                     type="search"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     placeholder={t('searchPlaceholder')}
-                    className="w-full px-3 py-1.5 pr-8 rounded-md bg-gray-800 border border-gray-700 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-1.5 pr-8 rounded-md bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500"
                   />
                   {searchInput && (
                     <button
                       type="button"
                       onClick={() => setSearchInput('')}
                       aria-label={t('clearSearch')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-sm leading-none"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm leading-none"
                     >
                       ✕
                     </button>
@@ -357,7 +357,7 @@ export default function LiveTvPage() {
                       className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                         activeCategory === 'all'
                           ? 'bg-indigo-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                          : 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 hover:bg-gray-300 hover:text-gray-900'
                       }`}
                     >
                       {t('all')}
@@ -367,7 +367,7 @@ export default function LiveTvPage() {
                       className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                         activeCategory === 'favorite'
                           ? 'bg-indigo-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                          : 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 hover:bg-gray-300 hover:text-gray-900'
                       }`}
                     >
                       ★ {t('favorite')}
@@ -380,7 +380,7 @@ export default function LiveTvPage() {
                           className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
                             activeCategory === category
                               ? 'bg-indigo-600 text-white'
-                              : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                              : 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 hover:bg-gray-300 hover:text-gray-900'
                           }`}
                         >
                           {category}
@@ -390,7 +390,7 @@ export default function LiveTvPage() {
                     {builtinCategories.length > 10 && (
                       <button
                         onClick={() => setShowAllCategories((v) => !v)}
-                        className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap bg-gray-800 text-indigo-400 hover:text-white hover:bg-gray-700"
+                        className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap bg-gray-200 text-indigo-600 dark:bg-gray-800 dark:text-indigo-400 dark:hover:text-white dark:hover:bg-gray-700 hover:bg-gray-300 hover:text-indigo-700"
                       >
                         {showAllCategories ? t('collapse') : `${t('more')} (${builtinCategories.length - 10})`}
                       </button>
@@ -416,7 +416,7 @@ export default function LiveTvPage() {
           {/* ===== 右侧面板 ===== */}
           <main className="md:col-span-2 space-y-4">
             {/* 播放器 */}
-            <div className="bg-gray-900 rounded-xl border border-gray-800 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               {youtubeEmbed ? (
                 <div className="aspect-video w-full">
                   <iframe
@@ -435,15 +435,15 @@ export default function LiveTvPage() {
             {/* 节目信息 */}
             <div className="space-y-3">
               {activeTab === 'builtin' && currentProgram && (
-                <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                  <h4 className="text-xs font-semibold text-gray-400 mb-2">{t('nowPlaying')}</h4>
-                  <p className="font-semibold text-white">{currentProgram.title}</p>
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">{t('nowPlaying')}</h4>
+                  <p className="font-semibold text-gray-900 dark:text-white">{currentProgram.title}</p>
                   {currentProgram.description && (
-                    <p className="mt-1 text-sm text-gray-400 line-clamp-2">
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                       {currentProgram.description}
                     </p>
                   )}
-                  <div className="mt-3 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="mt-3 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-indigo-500 transition-all duration-1000"
                       style={{
@@ -463,37 +463,37 @@ export default function LiveTvPage() {
               )}
 
               {activeTab === 'builtin' && nextProgram && (
-                <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                  <h4 className="text-xs font-semibold text-gray-400 mb-2">{t('nextUp')}</h4>
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">{t('nextUp')}</h4>
                   <div className="flex items-start gap-3">
-                    <div className="text-indigo-400 font-mono text-sm w-14 shrink-0">
+                    <div className="text-indigo-600 dark:text-indigo-400 font-mono text-sm w-14 shrink-0">
                       {new Date(nextProgram.start).toLocaleTimeString('zh-CN', {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
                     </div>
-                    <p className="font-semibold text-white">{nextProgram.title}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{nextProgram.title}</p>
                   </div>
                 </div>
               )}
 
               {activeTab === 'm3u' && effectiveChannel && (
-                <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                  <h4 className="text-xs font-semibold text-gray-400 mb-1">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
                     {t('channelInfo')}
                   </h4>
-                  <p className="font-semibold text-white">{effectiveChannel.name}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{effectiveChannel.name}</p>
                   {'groupTitle' in effectiveChannel && effectiveChannel.groupTitle && (
-                    <p className="mt-0.5 text-sm text-gray-400">{effectiveChannel.groupTitle}</p>
+                    <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{effectiveChannel.groupTitle}</p>
                   )}
-                  <p className="mt-2 text-xs text-gray-500 truncate">{effectiveChannel.streamUrl}</p>
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 truncate">{effectiveChannel.streamUrl}</p>
                 </div>
               )}
 
               {activeTab === 'direct' && directUrl && (
-                <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                  <h4 className="text-xs font-semibold text-gray-400 mb-1">{t('streamUrl')}</h4>
-                  <p className="text-sm text-gray-300 break-all">{directUrl}</p>
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('streamUrl')}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 break-all">{directUrl}</p>
                 </div>
               )}
             </div>
