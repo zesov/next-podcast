@@ -220,7 +220,7 @@ export default function Player({ title = true }: { title?: boolean }) {
       />
 
 {/* 播放器界面 */}
-       <div className="bg-white rounded-lg shadow p-4 mb-6 lg:sticky lg:top-20 mobile-fixed-bottom z-50">
+       <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-4 mb-6 lg:sticky lg:top-20 mobile-fixed-bottom z-50">
         {title && (
           <div className="flex items-center mb-4">
             <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -228,7 +228,7 @@ export default function Player({ title = true }: { title?: boolean }) {
             </div>
             <div className="ml-4">
               <h3 className="font-medium">{currentEpisode.title || t('notSelected')}</h3>
-              <p className="text-sm text-gray-500">{currentEpisode.feedTitle}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{currentEpisode.feedTitle}</p>
             </div>
           </div>
         )}
@@ -236,7 +236,7 @@ export default function Player({ title = true }: { title?: boolean }) {
         {/* 进度条 */}
         <div className="mb-4">
           <div
-            className="h-1 bg-gray-200 rounded-full w-full mb-1 cursor-pointer"
+            className="h-1 bg-gray-200 dark:bg-gray-800 rounded-full w-full mb-1 cursor-pointer"
             onClick={handleSeek}
           >
             <div
@@ -244,7 +244,7 @@ export default function Player({ title = true }: { title?: boolean }) {
               style={{ width: `${progressPercent}%` }}
             ></div>
           </div>
-          <div className="flex justify-between text-xs text-gray-500">
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -253,28 +253,28 @@ export default function Player({ title = true }: { title?: boolean }) {
         {/* 控制按钮 */}
         <div className="flex justify-between items-center">
           <button
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             onClick={backward}
           >
             <i className="fas fa-step-backward"></i>
           </button>
 
           <button
-            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-10 h-10 flex items-center justify-center"
+            className="bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 text-white rounded-full w-10 h-10 flex items-center justify-center"
             onClick={togglePlayPause}
           >
             <i className={isPlaying ? "fas fa-pause" : "fas fa-play"}></i>
           </button>
 
           <button
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             onClick={forward}
           >
             <i className="fas fa-step-forward"></i>
           </button>
 
           <button
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             onClick={toggleMute}
           >
             <i className={isMuted ? "fas fa-volume-mute" : "fas fa-volume-up"}></i>
@@ -282,7 +282,7 @@ export default function Player({ title = true }: { title?: boolean }) {
 
           <div className="w-20">
             <div
-              className="h-1 bg-gray-200 rounded-full w-full cursor-pointer"
+              className="h-1 bg-gray-200 dark:bg-gray-800 rounded-full w-full cursor-pointer"
               onClick={handleVolumeChange}
             >
               <div

@@ -10,25 +10,25 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">{t('explore')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('browse')}</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('ranking')}</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('categories')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('browse')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('ranking')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('categories')}</a></li>
             </ul>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">{t('about')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('aboutUs')}</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('creators')}</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('jobs')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('aboutUs')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('creators')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('jobs')}</a></li>
             </ul>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">{t('support')}</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('help')}</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('guidelines')}</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">{t('feedback')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('help')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('guidelines')}</a></li>
+              <li><a href="#" className="text-gray-300 dark:text-gray-600 hover:text-white">{t('feedback')}</a></li>
             </ul>
           </div>
           <div>
@@ -43,7 +43,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-700 mt-8 pt-8 text-sm text-gray-400">
+        <div className="border-t border-gray-700 mt-8 pt-8 text-sm text-gray-400 dark:text-gray-500">
           <p>{t('copyright')}</p>
         </div>
       </div>
