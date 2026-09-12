@@ -128,23 +128,23 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0, searchTe
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
           {t("title")} 🎬
         </h1>
-        <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("subtitle")}</p>
       </div>
 
       {/* Search status - shows current search query if any */}
       {submittedQuery && (
         <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Search className="h-4 w-4" aria-hidden="true" />
             <span>Searching for: <strong>{submittedQuery}</strong></span>
           </div>
           <button
             type="button"
             onClick={() => window.history.pushState({}, "", "/peertube")}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+            className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
             <X className="h-3 w-3" />
             {t("clearSearch")}
@@ -156,13 +156,13 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0, searchTe
       {selected && (
         <div id="peertube-player" className="mb-6 scroll-mt-20">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-medium text-gray-900 truncate">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 truncate">
               {selected.name}
             </h2>
             <button
               type="button"
               onClick={() => setSelected(null)}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
               ✕ {t("close")}
             </button>
@@ -179,12 +179,12 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0, searchTe
       )}
 
       {!error && !loading && videos.length === 0 && !submittedQuery && (
-        <div className="mb-4 p-8 text-center rounded-lg bg-gray-50 text-gray-500">
+        <div className="mb-4 p-8 text-center rounded-lg bg-gray-50 dark:bg-gray-950 text-gray-500 dark:text-gray-400">
           {t("initialEmpty")}
         </div>
       )}
       {!error && !loading && videos.length === 0 && submittedQuery && (
-        <div className="mb-4 p-8 text-center rounded-lg bg-gray-50 text-gray-500">
+        <div className="mb-4 p-8 text-center rounded-lg bg-gray-50 dark:bg-gray-950 text-gray-500 dark:text-gray-400">
           {t("emptyResult", { query: submittedQuery })}
         </div>
       )}
@@ -193,7 +193,7 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0, searchTe
       <main className="flex-1 min-w-0">
           {videos.length > 0 && (
             <>
-              <div className="mb-4 text-sm text-gray-500">
+              <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
                 {t("resultCount", { count: format.number(total) })}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -209,12 +209,12 @@ export default function PeerTubePage({ initialVideos, initialTotal = 0, searchTe
             </>
           )}
           {!error && !loading && videos.length === 0 && !submittedQuery && (
-            <div className="mb-4 p-8 text-center rounded-lg bg-gray-50 text-gray-500">
+            <div className="mb-4 p-8 text-center rounded-lg bg-gray-50 dark:bg-gray-950 text-gray-500 dark:text-gray-400">
               {t("initialEmpty")}
             </div>
           )}
           {!error && !loading && videos.length === 0 && submittedQuery && (
-            <div className="mb-4 p-8 text-center rounded-lg bg-gray-50 text-gray-500">
+            <div className="mb-4 p-8 text-center rounded-lg bg-gray-50 dark:bg-gray-950 text-gray-500 dark:text-gray-400">
               {t("emptyResult", { query: submittedQuery })}
             </div>
           )}

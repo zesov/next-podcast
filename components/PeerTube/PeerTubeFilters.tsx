@@ -116,11 +116,11 @@ function Select({ label, value, options, onChange, t, className = "" }: {
 }) {
   return (
     <div className={`mb-4 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{t(label)}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t(label)}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -142,7 +142,7 @@ function RadioGroup({ label, value, options, onChange, t, className = "" }: {
 }) {
   return (
     <div className={`mb-4 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700 mb-2">{t(label)}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t(label)}</label>
       <div className="flex flex-wrap gap-4">
         {options.map((opt) => (
           <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
@@ -152,9 +152,9 @@ function RadioGroup({ label, value, options, onChange, t, className = "" }: {
               value={opt.value}
               checked={value === opt.value}
               onChange={() => onChange(opt.value)}
-              className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+              className="h-4 w-4 text-indigo-600 dark:text-indigo-400 border-gray-300 dark:border-gray-700 focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-700">{t(opt.labelKey)}</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">{t(opt.labelKey)}</span>
           </label>
         ))}
       </div>
@@ -186,15 +186,15 @@ function MultiTagInput({ label, value, onChange, placeholder, t, className = "" 
   };
   return (
     <div className={`mb-4 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700 mb-2">{t(label)}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t(label)}</label>
       <div className="flex flex-wrap gap-2 mb-2">
         {value.map((tag) => (
-          <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-sm text-gray-700">
+          <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm text-gray-700 dark:text-gray-300">
             {tag}
             <button
               type="button"
               onClick={() => onChange(value.filter((t) => t !== tag))}
-              className="ml-1 text-gray-500 hover:text-gray-700"
+              className="ml-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
               ✕
             </button>
@@ -208,12 +208,12 @@ function MultiTagInput({ label, value, onChange, placeholder, t, className = "" 
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100"
         />
         <button
           type="button"
           onClick={handleAdd}
-          className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm"
+          className="px-3 py-2 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 text-sm"
         >
           {t("addTag")}
         </button>
@@ -232,13 +232,13 @@ function TextInput({ label, value, onChange, placeholder, t, className = "" }: {
 }) {
   return (
     <div className={`mb-4 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{t(label)}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t(label)}</label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100"
       />
     </div>
   );
@@ -298,21 +298,21 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
   }));
 
   return (
-    <div className="w-full p-4 bg-white rounded-xl border border-gray-200">
+    <div className="w-full p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">{t("title")}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t("title")}</h2>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={handleApply}
-            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+            className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium"
           >
             {t("apply")}
           </button>
           <button
             type="button"
             onClick={handleReset}
-            className="text-xs text-indigo-600 hover:text-indigo-800"
+            className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800"
           >
             {t("reset")}
           </button>
@@ -384,12 +384,12 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
 
         {/* Category */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("category")}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("category")}</label>
           <div className="relative">
             <select
               value={filters.categoryOneOf || "any"}
               onChange={(e) => handleChange("categoryOneOf", e.target.value === "any" ? "" : e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 appearance-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100 appearance-none"
             >
               <option value="any">{t("allCategories")}</option>
               {CATEGORIES.map((cat) => (
@@ -399,7 +399,7 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
               ))}
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -408,12 +408,12 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
 
         {/* Licence */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("licence")}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("licence")}</label>
           <div className="relative">
             <select
               value={filters.licenceOneOf || "any"}
               onChange={(e) => handleChange("licenceOneOf", e.target.value === "any" ? "" : e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 appearance-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100 appearance-none"
             >
               <option value="any">{t("allLicences")}</option>
               {LICENCES.map((lic) => (
@@ -423,7 +423,7 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
               ))}
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -432,12 +432,12 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
 
         {/* Language */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("language")}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("language")}</label>
           <div className="relative">
             <select
               value={filters.languageOneOf || "any"}
               onChange={(e) => handleChange("languageOneOf", e.target.value === "any" ? "" : e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 appearance-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100 appearance-none"
             >
               <option value="any">{t("allLanguages")}</option>
               {LANGUAGES.map((lang) => (
@@ -447,7 +447,7 @@ export default forwardRef<PeerTubeFiltersRef, Props>(function PeerTubeFilters({ 
               ))}
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
