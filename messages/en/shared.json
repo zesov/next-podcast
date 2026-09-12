@@ -7,7 +7,9 @@
     "ranking": "Rankings",
     "categories": "Categories",
     "searchPlaceholder": "Search podcasts, episodes or creators",
-    "liveSearchPlaceholder": "Search live channels by name, category..."
+    "liveSearchPlaceholder": "Search live channels by name, category...",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
   },
   "footer": {
     "explore": "Explore",

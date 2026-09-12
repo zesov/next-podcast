@@ -8,6 +8,7 @@ import { routing } from "@/i18n/routing";
 import type { Metadata, Viewport } from "next";
 import MockBootstrap from "@/components/MockBootstrap";
 import PwaRegister from "@/components/PwaRegister";
+import ThemeProvider from "@/components/ThemeProvider";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -63,13 +64,15 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NextIntlClientProvider messages={messages}>
-          <MockBootstrap>{children}</MockBootstrap>
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider messages={messages}>
+            <MockBootstrap>{children}</MockBootstrap>
+          </NextIntlClientProvider>
+        </ThemeProvider>
         <PwaRegister />
         <Analytics />
         <SpeedInsights />

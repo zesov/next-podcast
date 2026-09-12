@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+/* 基于 .dark class 的暗色模式（由 next-themes 切换 <html class="dark">） */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -12,17 +22,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* 隐藏原生搜索清除按钮（PC Chrome 显示、Android 不显示，行为不一致）——统一由 LiveTvPage 自定义 ✕ 按钮控制 */
@@ -67,6 +71,11 @@ input[type='search']::-webkit-search-cancel-button {
   font-size: 24px !important;
 }
 
+.dark .slick-prev:before,
+.dark .slick-next:before {
+  color: #fff !important; /* 暗色模式箭头颜色 */
+}
+
 .slick-dots li button:before {
   color: #ccc !important; /* 分页点颜色 */
   font-size: 12px !important;
@@ -74,6 +83,14 @@ input[type='search']::-webkit-search-cancel-button {
 
 .slick-dots li.slick-active button:before {
   color: #000 !important; /* 激活分页点颜色 */
+}
+
+.dark .slick-dots li button:before {
+  color: #4b5563 !important; /* 暗色模式分页点颜色 */
+}
+
+.dark .slick-dots li.slick-active button:before {
+  color: #fff !important; /* 暗色模式激活分页点颜色 */
 }
 
 @media (max-width: 1023px) {
