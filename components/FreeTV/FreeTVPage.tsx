@@ -444,7 +444,7 @@ useEffect(() => {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="flex items-center gap-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-gray-900 animate-pulse" />
                         {t('live')}
                       </span>
                       <span className="text-xs text-gray-200">{effectiveChannel.name}</span>
@@ -454,7 +454,7 @@ useEffect(() => {
                         <h2 className="text-lg sm:text-2xl font-bold text-white leading-tight truncate">
                           {currentProgram.title}
                         </h2>
-                        <p className="text-xs text-gray-300">
+                        <p className="text-xs text-gray-300 dark:text-gray-600">
                           {`${new Date(currentProgram.start).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })} – ${new Date(currentProgram.end).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`}
                         </p>
                       </>
@@ -476,7 +476,7 @@ useEffect(() => {
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
               activeCategory === 'all'
                 ? 'bg-indigo-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+                : 'bg-gray-800 text-gray-300 dark:text-gray-600 hover:bg-gray-700 hover:text-white'
             }`}
           >
             {t('all')}
@@ -488,7 +488,7 @@ useEffect(() => {
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                 activeCategory === cat
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+                  : 'bg-gray-800 text-gray-300 dark:text-gray-600 hover:bg-gray-700 hover:text-white'
               }`}
             >
               {cat}
@@ -497,7 +497,7 @@ useEffect(() => {
           {categories.length > 10 && (
             <button
               onClick={() => setCategoriesExpanded(!categoriesExpanded)}
-              className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
+              className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap bg-gray-800 text-gray-300 dark:text-gray-600 hover:bg-gray-700 hover:text-white"
             >
               {categoriesExpanded ? t('collapse') : `${t('more')} (+${categories.length - 10})`}
             </button>
@@ -526,14 +526,14 @@ useEffect(() => {
               favoriteIds={favoriteChannelIds}
               onToggleFavorite={toggleFavorite}
             />
-            <div ref={loadMoreRef} className="py-4 text-center text-sm text-gray-500">
+            <div ref={loadMoreRef} className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
               {loading ? t('loading') : hasMore ? t('scrollMore') : t('allLoaded')}
             </div>
           </div>
 
           <div className="lg:col-span-1 space-y-4">
             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">{t('nowPlaying')}</h4>
+              <h4 className="text-sm font-medium text-gray-400 dark:text-gray-500 mb-2">{t('nowPlaying')}</h4>
               {currentProgram ? (
                 <div className="space-y-2">
                   <div className="flex items-start gap-3">
@@ -546,7 +546,7 @@ useEffect(() => {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-white">{currentProgram.title}</p>
                       {currentProgram.description && (
-                        <p className="text-sm text-gray-400">{currentProgram.description}</p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500">{currentProgram.description}</p>
                       )}
                     </div>
                   </div>
@@ -566,13 +566,13 @@ useEffect(() => {
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-500">{t('epgEmpty')}</p>
+                <p className="text-gray-500 dark:text-gray-400">{t('epgEmpty')}</p>
               )}
             </div>
 
             {nextProgram && (
               <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                <h4 className="text-sm font-medium text-gray-400 mb-2">{t('nextUp')}</h4>
+                <h4 className="text-sm font-medium text-gray-400 dark:text-gray-500 mb-2">{t('nextUp')}</h4>
                 <div className="flex items-start gap-3">
                   <div className="text-indigo-400 font-mono text-sm w-16 shrink-0">
                     {new Date(nextProgram.start).toLocaleTimeString('zh-CN', {
@@ -583,7 +583,7 @@ useEffect(() => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white">{nextProgram.title}</p>
                     {nextProgram.description && (
-                      <p className="text-sm text-gray-400">{nextProgram.description}</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-500">{nextProgram.description}</p>
                     )}
                   </div>
                 </div>
