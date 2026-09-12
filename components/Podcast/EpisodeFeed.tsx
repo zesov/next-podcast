@@ -71,21 +71,21 @@ export default function EpisodePage({id}: {id:number}) {
         <meta name="description" content={currentEpisode.description} />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         {/* 导航栏 */}
-        <nav className="bg-white shadow-sm border-b">
+        <nav className="bg-white dark:bg-gray-900 shadow-sm border-b">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
               <button 
                 onClick={() => {router.back()}} 
-                className="mr-4 p-2 rounded-full hover:bg-gray-200 transition-colors duration-200"
+                className="mr-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
                 >
-                <svg className="w-6 h-6 text-gray-700 hover:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 </button>
-                <h1 className="text-xl font-semibold text-gray-900">{podcast.title}</h1>
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{podcast.title}</h1>
               </div>
             </div>
           </div>
@@ -105,18 +105,18 @@ export default function EpisodePage({id}: {id:number}) {
             </div>
             
             <div className="flex-1">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">{currentEpisode.title}</h2>
-              <p className="text-lg text-gray-600 mb-4">{podcast.author}</p>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">{currentEpisode.title}</h2>
+              <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">{podcast.author}</p>
               
               <div className="flex items-center space-x-4 mb-6">
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
                   {podcast.category}
                 </span>
-                <span className="text-gray-500 text-sm">{currentEpisode.datePublishedPretty}</span>
-                <span className="text-gray-500 text-sm">{currentEpisode.duration}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-sm">{currentEpisode.datePublishedPretty}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-sm">{currentEpisode.duration}</span>
               </div>
 
-              <p className="text-gray-700 mb-6 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
                 {currentEpisode.description}
               </p>
 
@@ -126,34 +126,34 @@ export default function EpisodePage({id}: {id:number}) {
           </div>
 
           {/* 剧集列表 */}
-          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md overflow-hidden">
             <div className="px-6 py-4 border-b">
-              <h3 className="text-xl font-semibold text-gray-900">{t('allEpisodes')}</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('allEpisodes')}</h3>
             </div>
             
             <div className="divide-y">
               {podcast.episodes.map((episode, index) => (
                 <div
                   key={episode.id}
-                  className={`p-6 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors ${
                     episode.id === currentEpisode.id ? 'bg-blue-50' : ''
                   }`}
                   onClick={() => handleClick(episode)}
                 >
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <img src={episode.image} className="text-gray-500 font-medium"></img>
+                    <div className="flex-shrink-0 w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                      <img src={episode.image} className="text-gray-500 dark:text-gray-400 font-medium"></img>
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-lg font-semibold text-gray-900 truncate">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {episode.title}
                       </h4>
-                      <p className="text-gray-600 text-sm mb-2">{episode.datePublishedPretty} • {episode.duration}</p>
-                      <p className="text-gray-700 line-clamp-2">{episode.description}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{episode.datePublishedPretty} • {episode.duration}</p>
+                      <p className="text-gray-700 dark:text-gray-300 line-clamp-2">{episode.description}</p>
                     </div>
                     
-                    <button className="flex-shrink-0 text-gray-400 hover:text-gray-600">
+                    <button className="flex-shrink-0 text-gray-400 dark:text-gray-500 hover:text-gray-600">
                       <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
                       </svg>

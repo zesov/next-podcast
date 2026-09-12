@@ -28,7 +28,7 @@ const FeaturedCarousel = ({ featuredItems }: {featuredItems: FeaturedItem[]}) =>
     customPaging: (i:number) => (
       <button 
         type="button" 
-        className={`w-3 h-3 rounded-full ${i === currentSlide ? 'bg-white' : 'bg-gray-500'}`}
+        className={`w-3 h-3 rounded-full ${i === currentSlide ? 'bg-white dark:bg-gray-900' : 'bg-gray-500'}`}
       />
     ),
     responsive: [
@@ -67,7 +67,7 @@ const FeaturedCarousel = ({ featuredItems }: {featuredItems: FeaturedItem[]}) =>
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               {/* 播放按钮（悬停显示） */}
-              <button className="absolute bottom-4 right-4 w-10 h-10 bg-indigo-600 hover:bg-indigo-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              <button className="absolute bottom-4 right-4 w-10 h-10 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                  onClick={() => handleClick(item)}
               >
                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -84,7 +84,7 @@ const FeaturedCarousel = ({ featuredItems }: {featuredItems: FeaturedItem[]}) =>
                 {item.title}
               </a>
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                    {item.newestItemPublishTime ? (new Date(item.newestItemPublishTime * 1000)).toDateString() : '最新更新'}
                  </span>
               </div>

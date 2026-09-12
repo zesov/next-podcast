@@ -14,7 +14,7 @@ export default function PodcastPage({feeds,topPodcasts,recentEpisodes,episodesRa
 
   return (
     <>
-    <div className="bg-gray-100 text-gray-900 font-sans">
+    <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-sans">
       <Head>
         <title>JuneAC 播客(CN) - 网页播放器</title>
         <meta name="description" content="Apple Podcasts Web Player" />

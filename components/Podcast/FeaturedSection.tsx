@@ -37,7 +37,7 @@ export default function FeaturedSection({data}: { data: FeaturedItem[] }) {
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">{t('featured')}</h2>
-        <a href="/podcast" className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+        <a href="/podcast" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 text-sm font-medium">
           {t('viewAll')}
         </a>
       </div>

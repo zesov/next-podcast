@@ -26,20 +26,20 @@ export default function TopPodcasts({data}:{data:TopPodcast[]}) {
   return (
     <section className="mb-8 mt-8">
       <h2 className="text-xl font-bold mb-4">{t('topPodcasts')}</h2>
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
         <ul className="divide-y divide-gray-200">
           {topPodcasts.map((podcast, index) => (
-            <li key={index} className="p-4 hover:bg-gray-50">
+            <li key={index} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50">
               <div className="flex items-center">
-                <span className="text-gray-500 w-6 text-center">{index + 1}</span>
+                <span className="text-gray-500 dark:text-gray-400 w-6 text-center">{index + 1}</span>
                 <img className="w-12 h-12 rounded-full" src={podcast.image} alt={podcast.title} />
                 <div className="ml-4 flex-1">
                  <Link href={`/podcast/${podcast.id}`}>
                    <h3 className="font-medium">{podcast.title}</h3>
                  </Link>
-                 <p className="text-sm text-gray-500">{t('latestUpdate')}: {(new Date(podcast.lastUpdateTime*1000)).toDateString()}</p>
+                 <p className="text-sm text-gray-500 dark:text-gray-400">{t('latestUpdate')}: {(new Date(podcast.lastUpdateTime*1000)).toDateString()}</p>
                </div>
-                <button className="text-indigo-600 hover:text-indigo-800"
+                <button className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800"
                   onClick={() => handleClick(podcast)}
                 >
                   <i className="fas fa-play"></i>

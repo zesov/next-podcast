@@ -22,7 +22,7 @@ export default function CategorySection() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {categories.map((category, index) => (
            <Link href={`/podcast/?tag=${category.tag}`} key={index}>
-             <div className="bg-white rounded-lg shadow p-4 hover:bg-indigo-50 transition-colors">
+             <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-4 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 transition-colors">
                <div className="flex items-center">
                  <i className={`${category.icon} text-indigo-500 mr-2`}></i>
                  <span className="font-medium">{ct(category.key)}</span>
