@@ -284,29 +284,29 @@ export default function LiveTvPage() {
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </header>
 
-        {/* Tab 切换（居中） */}
-        <nav className="flex justify-center">
-          <div className="inline-flex bg-gray-200 dark:bg-gray-900 rounded-lg p-1">
-            {(['builtin', 'm3u', 'direct'] as TabType[]).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === tab
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800'
-                }`}
-              >
-                {t(`tabs.${tab}`)}
-              </button>
-            ))}
-          </div>
-        </nav>
-
         {/* 左右分栏：左列表 + 右播放器（md 起并排——笔记本常见 ~1000px CSS 宽也要 PC 布局） */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* ===== 左侧面板 ===== */}
           <aside className="md:col-span-1 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
+            {/* Tab 切换（面板顶部，满宽分段控件） */}
+            <div className="p-3 border-b border-gray-200 dark:border-gray-800">
+              <div className="grid grid-cols-3 gap-1 bg-gray-200 dark:bg-gray-900 rounded-lg p-1">
+                {(['builtin', 'm3u', 'direct'] as TabType[]).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === tab
+                        ? 'bg-indigo-600 text-white'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    {t(`tabs.${tab}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* M3U 输入区（仅 M3U tab） */}
             {activeTab === 'm3u' && (
               <div className="p-4 border-b border-gray-200 dark:border-gray-800">
@@ -400,8 +400,8 @@ export default function LiveTvPage() {
               </div>
             )}
 
-            {/* 频道列表（滚动，移动端压缩高度 + 细滚动条） */}
-            <div className="flex-1 min-h-[200px] max-h-[300px] md:min-h-[300px] md:max-h-[480px] overflow-y-auto scrollbar-thin">
+            {/* 频道列表（滚动，移动端压缩高度 + 细滚动条；md 起 flex 填充面板剩余高度 -> 与右侧播放器列等高） */}
+            <div className="flex-1 min-h-[200px] max-h-[300px] md:min-h-0 md:max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-thin">
               <ChannelList
                 channels={listItems}
                 activeId={effectiveChannel?.id ?? null}
@@ -414,7 +414,7 @@ export default function LiveTvPage() {
           </aside>
 
           {/* ===== 右侧面板 ===== */}
-          <main className="md:col-span-2 space-y-4">
+          <main className="md:col-span-2">
             {/* 播放器 */}
             <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               {youtubeEmbed ? (
